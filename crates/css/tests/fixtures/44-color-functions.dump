@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors=".palette"
+  declaration[0] @1:12 a="rgb(" important=false
+  declaration[1] @1:36 b="hsl(" important=false
+  declaration[2] @1:60 c="color(" important=false

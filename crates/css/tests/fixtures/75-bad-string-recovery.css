@@ -1,0 +1,2 @@
+a { content: "unterminated
+; color: red; } p { display: block; }

@@ -1,0 +1,1 @@
+[data-x] [lang|=en] [class~=tag] [href^=https] [href$=".pdf"] [href*="docs"] { color: blue; }

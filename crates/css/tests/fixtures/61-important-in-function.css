@@ -1,0 +1,1 @@
+a { custom: fn(!important); color: var(--x, red) !important; }

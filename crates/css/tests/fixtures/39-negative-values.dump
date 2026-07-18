@@ -1,0 +1,3 @@
+rule[0] style @1:1 selectors=".offset"
+  declaration[0] @1:11 margin="-1px -2rem" important=false
+  declaration[1] @1:31 top="-0.5em" important=false

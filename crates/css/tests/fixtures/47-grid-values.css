@@ -1,0 +1,1 @@
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); grid-area: 1 / 2 / span 3 / -1; }

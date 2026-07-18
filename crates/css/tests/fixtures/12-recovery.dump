@@ -1,0 +1,7 @@
+rule[0] style @1:1 selectors="a"
+  declaration[0] @1:5 color="red" important=false
+  declaration[1] @1:25 width="1px" important=false
+rule[1] style @1:54 selectors="p"
+  declaration[0] @1:58 display="block" important=false
+error[0] @1:23 unexpected end of input source="broken;"
+error[1] @1:38 empty selector prelude source="{"

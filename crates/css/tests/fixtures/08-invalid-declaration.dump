@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors="a"
+  declaration[0] @1:5 color="red" important=false
+  declaration[1] @1:25 width="1px" important=false
+error[0] @1:23 unexpected end of input source="broken;"

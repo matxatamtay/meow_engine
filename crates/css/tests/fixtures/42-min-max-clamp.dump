@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors=".responsive"
+  declaration[0] @1:15 width="min(" important=false
+  declaration[1] @1:40 height="max(" important=false
+  declaration[2] @1:66 font-size="clamp(" important=false

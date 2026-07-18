@@ -1,0 +1,5 @@
+rule[0] style @1:1 selectors=".row"
+  declaration[0] @1:8 display="flex" important=false
+  declaration[1] @1:23 flex="1 1 20rem" important=false
+  declaration[2] @1:40 align-items="center" important=false
+  declaration[3] @1:61 justify-content="space-between" important=false

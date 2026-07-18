@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors=".caf\\e9, #\\31 23, .foo\\+bar"
+  declaration[0] @1:31 color="brown" important=false

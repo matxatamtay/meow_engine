@@ -1,0 +1,3 @@
+rule[0] style @1:1 selectors=".meter"
+  declaration[0] @1:10 width="75%" important=false
+  declaration[1] @1:22 translate="-50% 0%" important=false

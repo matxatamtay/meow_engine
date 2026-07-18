@@ -1,0 +1,1 @@
+article:not(.hidden):is(.card, .panel):where([open]) { opacity: 1; }

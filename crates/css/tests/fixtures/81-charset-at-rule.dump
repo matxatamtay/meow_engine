@@ -1,0 +1,2 @@
+rule[0] style @1:19 selectors="a"
+  declaration[0] @1:23 color="red" important=false

@@ -1,10 +1,11 @@
 //! Top-level frame and navigation orchestration for MeowEngine.
 
-use std::{error::Error, fmt};
+use std::{error::Error, fmt, fmt::Write as _};
 
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
+use meow_css::{Stylesheet, parse_stylesheet};
 use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene};
-use meow_html::{Document, parse_bytes, parse_utf8};
+use meow_html::{Document, NodeId, StylesheetCandidateKind, parse_bytes, parse_utf8};
 use meow_net::{Loader, NetError, Request, ResponseMetadata};
 use meow_url_policy::UrlPolicyError;
 
@@ -64,6 +65,41 @@ pub struct HistoryEntry {
     pub url: BrowserUrl,
 }
 
+/// Origin of one parsed document stylesheet.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum StylesheetSource {
+    /// CSS text from an HTML `<style>` node.
+    Inline { node: NodeId },
+    /// CSS bytes loaded from an HTML `<link rel="stylesheet">` node.
+    External {
+        node: NodeId,
+        requested_url: BrowserUrl,
+        final_url: BrowserUrl,
+    },
+}
+
+/// One parsed stylesheet attached to the committed document.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DocumentStylesheet {
+    /// Inline or external source metadata.
+    pub source: StylesheetSource,
+    /// Raw media query text, if present.
+    pub media: Option<String>,
+    /// Parsed CSS syntax tree and recoverable diagnostics.
+    pub stylesheet: Stylesheet,
+}
+
+/// Non-fatal failure while resolving or loading a linked stylesheet.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StylesheetLoadError {
+    /// `<link>` node that produced the failure.
+    pub node: NodeId,
+    /// Original href when the failure came from a linked stylesheet.
+    pub href: Option<String>,
+    /// Human-readable resolution, HTTP, or network error.
+    pub message: String,
+}
+
 /// Fully parsed and committed top-level document state.
 #[derive(Clone, Debug)]
 pub struct DocumentState {
@@ -79,8 +115,57 @@ pub struct DocumentState {
     pub charset_source: CharsetSource,
     /// HTTP response metadata. Synthetic documents have none.
     pub response: Option<ResponseMetadata>,
+    /// Parsed inline and successfully loaded external stylesheets in document order.
+    pub stylesheets: Vec<DocumentStylesheet>,
+    /// Non-fatal linked stylesheet failures.
+    pub stylesheet_errors: Vec<StylesheetLoadError>,
     /// Index of this document in the current history list.
     pub history_index: usize,
+}
+
+impl DocumentState {
+    /// Produces a deterministic dump of every discovered stylesheet and load error.
+    #[must_use]
+    pub fn dump_stylesheets(&self) -> String {
+        let mut output = String::new();
+        for (index, entry) in self.stylesheets.iter().enumerate() {
+            match &entry.source {
+                StylesheetSource::Inline { node } => {
+                    writeln!(
+                        output,
+                        "stylesheet[{index}] inline node={} media={:?}",
+                        node.slot, entry.media
+                    )
+                    .expect("writing to String cannot fail");
+                }
+                StylesheetSource::External {
+                    node,
+                    requested_url,
+                    final_url,
+                } => {
+                    writeln!(
+                        output,
+                        "stylesheet[{index}] external node={} requested={:?} final={:?} media={:?}",
+                        node.slot,
+                        requested_url.as_str(),
+                        final_url.as_str(),
+                        entry.media
+                    )
+                    .expect("writing to String cannot fail");
+                }
+            }
+            output.push_str(&entry.stylesheet.dump());
+        }
+        for (index, error) in self.stylesheet_errors.iter().enumerate() {
+            writeln!(
+                output,
+                "stylesheet-error[{index}] node={} href={:?} message={:?}",
+                error.node.slot, error.href, error.message
+            )
+            .expect("writing to String cannot fail");
+        }
+        output
+    }
 }
 
 /// Top-level navigation lifecycle owner.
@@ -104,6 +189,8 @@ impl Navigator {
             encoding: UTF_8.name(),
             charset_source: CharsetSource::AboutBlank,
             response: None,
+            stylesheets: Vec::new(),
+            stylesheet_errors: Vec::new(),
             history_index: 0,
         };
         Self {
@@ -153,6 +240,8 @@ impl Navigator {
                 encoding: UTF_8.name(),
                 charset_source: CharsetSource::AboutBlank,
                 response: None,
+                stylesheets: Vec::new(),
+                stylesheet_errors: Vec::new(),
                 history_index: self.history.len(),
             }
         } else {
@@ -170,6 +259,10 @@ impl Navigator {
                 .first_base_href()
                 .and_then(|reference| final_url.resolve(&reference).ok())
                 .unwrap_or_else(|| final_url.clone());
+            let (stylesheets, stylesheet_errors) =
+                load_stylesheets(&self.loader, &parsed.document, &base_url, cancellation)
+                    .await
+                    .map_err(NavigationError::Network)?;
 
             DocumentState {
                 url: final_url,
@@ -178,6 +271,8 @@ impl Navigator {
                 encoding: encoding.name(),
                 charset_source,
                 response: Some(response.metadata),
+                stylesheets,
+                stylesheet_errors,
                 history_index: self.history.len(),
             }
         };
@@ -197,6 +292,83 @@ impl Default for Navigator {
     fn default() -> Self {
         Self::new(Loader::default())
     }
+}
+
+async fn load_stylesheets(
+    loader: &Loader,
+    document: &Document,
+    base_url: &BrowserUrl,
+    cancellation: &CancellationToken,
+) -> Result<(Vec<DocumentStylesheet>, Vec<StylesheetLoadError>), NetError> {
+    let mut stylesheets = Vec::new();
+    let mut errors = Vec::new();
+
+    for candidate in document.stylesheet_candidates() {
+        match candidate.kind {
+            StylesheetCandidateKind::Inline(css) => stylesheets.push(DocumentStylesheet {
+                source: StylesheetSource::Inline {
+                    node: candidate.node,
+                },
+                media: candidate.media,
+                stylesheet: parse_stylesheet(&css),
+            }),
+            StylesheetCandidateKind::Linked(href) => {
+                let requested_url = match base_url.resolve(&href) {
+                    Ok(url) => url,
+                    Err(error) => {
+                        errors.push(StylesheetLoadError {
+                            node: candidate.node,
+                            href: Some(href),
+                            message: error.to_string(),
+                        });
+                        continue;
+                    }
+                };
+                match loader
+                    .load(Request::stylesheet(requested_url.clone()), cancellation)
+                    .await
+                {
+                    Ok(response) if response.status.is_success() => {
+                        let css = decode_stylesheet(
+                            &response.body,
+                            response.metadata.content_type.as_deref(),
+                        );
+                        stylesheets.push(DocumentStylesheet {
+                            source: StylesheetSource::External {
+                                node: candidate.node,
+                                requested_url,
+                                final_url: response.metadata.final_url,
+                            },
+                            media: candidate.media,
+                            stylesheet: parse_stylesheet(&css),
+                        });
+                    }
+                    Ok(response) => errors.push(StylesheetLoadError {
+                        node: candidate.node,
+                        href: Some(href),
+                        message: format!("stylesheet HTTP status {}", response.status),
+                    }),
+                    Err(NetError::Cancelled) => return Err(NetError::Cancelled),
+                    Err(error) => errors.push(StylesheetLoadError {
+                        node: candidate.node,
+                        href: Some(href),
+                        message: error.to_string(),
+                    }),
+                }
+            }
+        }
+    }
+
+    Ok((stylesheets, errors))
+}
+
+fn decode_stylesheet(bytes: &[u8], content_type: Option<&str>) -> String {
+    let encoding = content_type
+        .and_then(charset_parameter)
+        .and_then(|label| Encoding::for_label(label.as_bytes()))
+        .unwrap_or(UTF_8);
+    let (decoded, _, _) = encoding.decode(bytes);
+    decoded.into_owned()
 }
 
 fn sniff_encoding(bytes: &[u8], content_type: Option<&str>) -> (&'static Encoding, CharsetSource) {
@@ -353,6 +525,7 @@ mod tests {
         );
         assert_eq!(navigator.history().len(), 1);
         assert!(navigator.current().document.dump().contains("<html>"));
+        assert!(navigator.current().stylesheets.is_empty());
     }
 
     #[tokio::test]
@@ -379,6 +552,66 @@ mod tests {
         );
         assert_eq!(navigator.history().len(), 2);
         assert_eq!(navigator.history()[1].url, url);
+    }
+
+    #[tokio::test]
+    async fn loads_inline_and_external_stylesheets_in_document_order() {
+        let server = TestServer::spawn().await;
+        let mut navigator = Navigator::default();
+
+        navigator
+            .navigate(server.url("/styled").as_str(), &CancellationToken::new())
+            .await
+            .expect("styled navigation should commit");
+        let state = navigator.current();
+
+        assert_eq!(state.stylesheets.len(), 2);
+        assert!(state.stylesheet_errors.is_empty());
+        assert!(matches!(
+            state.stylesheets[0].source,
+            StylesheetSource::Inline { .. }
+        ));
+        assert_eq!(state.stylesheets[0].media.as_deref(), Some("screen"));
+        assert_eq!(state.stylesheets[0].stylesheet.diagnostics.len(), 1);
+        assert!(matches!(
+            state.stylesheets[1].source,
+            StylesheetSource::External { .. }
+        ));
+        assert_eq!(state.stylesheets[1].media.as_deref(), Some("print"));
+        let dump = state.dump_stylesheets();
+        assert!(dump.contains(r#"selectors="main""#));
+        assert!(dump.contains(r#"selectors=".card""#));
+        assert!(dump.contains("important=true"));
+    }
+
+    #[tokio::test]
+    async fn linked_stylesheet_failures_are_non_fatal_and_reported() {
+        let server = TestServer::spawn().await;
+        let mut navigator = Navigator::default();
+
+        navigator
+            .navigate(
+                server.url("/style-errors").as_str(),
+                &CancellationToken::new(),
+            )
+            .await
+            .expect("document should commit despite stylesheet failures");
+        let state = navigator.current();
+
+        assert_eq!(state.url, server.url("/style-errors"));
+        assert_eq!(state.stylesheets.len(), 1);
+        assert_eq!(state.stylesheet_errors.len(), 2);
+        assert!(state.stylesheet_errors.iter().any(|error| {
+            error.href.as_deref() == Some("/missing.css") && error.message.contains("404 Not Found")
+        }));
+        assert!(state.stylesheet_errors.iter().any(|error| {
+            error
+                .href
+                .as_deref()
+                .is_some_and(|href| href.starts_with("data:text/css"))
+                && error.message.contains("unsupported URL scheme")
+        }));
+        assert!(state.dump_stylesheets().contains("stylesheet-error[1]"));
     }
 
     #[tokio::test]
@@ -477,13 +710,36 @@ mod tests {
             .next()
             .and_then(|line| line.split_whitespace().nth(1))
             .unwrap_or("/");
-        let (status, response_body) = if path == "/page" {
-            ("200 OK", body)
-        } else {
-            ("404 Not Found", Vec::new())
+        let (status, content_type, response_body) = match path {
+            "/page" => ("200 OK", "text/html; charset=windows-1252", body),
+            "/styled" => (
+                "200 OK",
+                "text/html; charset=utf-8",
+                br#"<!doctype html>
+                    <style media="screen">main { color: red; broken; }</style>
+                    <link rel="stylesheet" href="/style.css" media="print">
+                    <main class="card">styled</main>"#
+                    .to_vec(),
+            ),
+            "/style.css" => (
+                "200 OK",
+                "text/css; charset=utf-8",
+                b".card { display: block !important; }".to_vec(),
+            ),
+            "/style-errors" => (
+                "200 OK",
+                "text/html; charset=utf-8",
+                br#"<!doctype html>
+                    <style>main { color: green; }</style>
+                    <link rel="stylesheet" href="/missing.css">
+                    <link rel="stylesheet" href="data:text/css,p%7Bcolor:red%7D">
+                    <main>still committed</main>"#
+                    .to_vec(),
+            ),
+            _ => ("404 Not Found", "text/plain; charset=utf-8", Vec::new()),
         };
         let headers = format!(
-            "HTTP/1.1 {status}\r\nContent-Type: text/html; charset=windows-1252\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            "HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
             response_body.len()
         );
         let _ = stream.write_all(headers.as_bytes()).await;

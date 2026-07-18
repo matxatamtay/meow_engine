@@ -1,0 +1,5 @@
+rule[0] style @1:1 selectors=".palette"
+  declaration[0] @1:12 a="#fff" important=false
+  declaration[1] @1:21 b="#ffff" important=false
+  declaration[2] @1:31 c="#123456" important=false
+  declaration[3] @1:43 d="#12345678" important=false

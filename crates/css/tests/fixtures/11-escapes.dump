@@ -1,0 +1,3 @@
+rule[0] style @1:1 selectors=".caf\\e9"
+  declaration[0] @1:11 font-family="\"A B\"" important=false
+  declaration[1] @1:31 content="\"x;y\"" important=false

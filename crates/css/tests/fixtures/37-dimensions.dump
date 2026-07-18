@@ -1,0 +1,6 @@
+rule[0] style @1:1 selectors=".box"
+  declaration[0] @1:8 width="10px" important=false
+  declaration[1] @1:21 height="2.5rem" important=false
+  declaration[2] @1:37 gap="1ch" important=false
+  declaration[3] @1:47 rotate="45deg" important=false
+  declaration[4] @1:62 animation-duration="250ms" important=false

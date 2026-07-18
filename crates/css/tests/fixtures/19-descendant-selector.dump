@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="main article p"
+  declaration[0] @1:18 line-height="1.5" important=false

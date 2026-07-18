@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors="a"
+  declaration[0] @1:5 valid="one" important=false
+  declaration[1] @1:31 after="two" important=false
+error[0] @1:23 unexpected token: Ident("value") source="broken value;"

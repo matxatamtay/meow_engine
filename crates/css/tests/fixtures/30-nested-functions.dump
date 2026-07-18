@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="main"
+  declaration[0] @1:8 width="calc(" important=false

@@ -1,0 +1,2 @@
+rule[0] at @1:1 name="layer" prelude="reset, theme" block=None
+rule[1] at @1:22 name="layer" prelude="theme" block=Some("a { color: var(--brand); }")

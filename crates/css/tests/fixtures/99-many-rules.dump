@@ -1,0 +1,60 @@
+rule[0] style @1:1 selectors=".item-0"
+  declaration[0] @1:11 order="0" important=false
+  declaration[1] @1:21 custom="value-0" important=false
+rule[1] style @2:1 selectors=".item-1"
+  declaration[0] @2:11 order="1" important=false
+  declaration[1] @2:21 custom="value-1" important=false
+rule[2] style @3:1 selectors=".item-2"
+  declaration[0] @3:11 order="2" important=false
+  declaration[1] @3:21 custom="value-2" important=false
+rule[3] style @4:1 selectors=".item-3"
+  declaration[0] @4:11 order="3" important=false
+  declaration[1] @4:21 custom="value-3" important=false
+rule[4] style @5:1 selectors=".item-4"
+  declaration[0] @5:11 order="4" important=false
+  declaration[1] @5:21 custom="value-4" important=false
+rule[5] style @6:1 selectors=".item-5"
+  declaration[0] @6:11 order="5" important=false
+  declaration[1] @6:21 custom="value-5" important=false
+rule[6] style @7:1 selectors=".item-6"
+  declaration[0] @7:11 order="6" important=false
+  declaration[1] @7:21 custom="value-6" important=false
+rule[7] style @8:1 selectors=".item-7"
+  declaration[0] @8:11 order="7" important=false
+  declaration[1] @8:21 custom="value-7" important=false
+rule[8] style @9:1 selectors=".item-8"
+  declaration[0] @9:11 order="8" important=false
+  declaration[1] @9:21 custom="value-8" important=false
+rule[9] style @10:1 selectors=".item-9"
+  declaration[0] @10:11 order="9" important=false
+  declaration[1] @10:21 custom="value-9" important=false
+rule[10] style @11:1 selectors=".item-10"
+  declaration[0] @11:12 order="10" important=false
+  declaration[1] @11:23 custom="value-10" important=false
+rule[11] style @12:1 selectors=".item-11"
+  declaration[0] @12:12 order="11" important=false
+  declaration[1] @12:23 custom="value-11" important=false
+rule[12] style @13:1 selectors=".item-12"
+  declaration[0] @13:12 order="12" important=false
+  declaration[1] @13:23 custom="value-12" important=false
+rule[13] style @14:1 selectors=".item-13"
+  declaration[0] @14:12 order="13" important=false
+  declaration[1] @14:23 custom="value-13" important=false
+rule[14] style @15:1 selectors=".item-14"
+  declaration[0] @15:12 order="14" important=false
+  declaration[1] @15:23 custom="value-14" important=false
+rule[15] style @16:1 selectors=".item-15"
+  declaration[0] @16:12 order="15" important=false
+  declaration[1] @16:23 custom="value-15" important=false
+rule[16] style @17:1 selectors=".item-16"
+  declaration[0] @17:12 order="16" important=false
+  declaration[1] @17:23 custom="value-16" important=false
+rule[17] style @18:1 selectors=".item-17"
+  declaration[0] @18:12 order="17" important=false
+  declaration[1] @18:23 custom="value-17" important=false
+rule[18] style @19:1 selectors=".item-18"
+  declaration[0] @19:12 order="18" important=false
+  declaration[1] @19:23 custom="value-18" important=false
+rule[19] style @20:1 selectors=".item-19"
+  declaration[0] @20:12 order="19" important=false
+  declaration[1] @20:23 custom="value-19" important=false

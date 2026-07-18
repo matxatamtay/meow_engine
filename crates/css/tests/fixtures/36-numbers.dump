@@ -1,0 +1,5 @@
+rule[0] style @1:1 selectors=".n"
+  declaration[0] @1:6 opacity=".5" important=false
+  declaration[1] @1:19 z-index="+10" important=false
+  declaration[2] @1:33 order="-2" important=false
+  declaration[3] @1:44 flex-grow="0" important=false

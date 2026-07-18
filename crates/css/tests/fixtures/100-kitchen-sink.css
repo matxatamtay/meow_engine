@@ -1,0 +1,12 @@
+@layer base, components;
+:root { --gap: clamp(.5rem, 2vw, 2rem); --brand: rgb(20 90 180); }
+@layer components {
+  article.card[data-state="open"] > h2:first-child::before {
+    content: "🐈 ";
+    color: var(--brand) !important;
+    margin: calc(var(--gap) * -1) var(--gap);
+    background: linear-gradient(90deg, #fff0, #fff), url("cat paw.png");
+  }
+}
+broken { valid: yes; missing-colon; after: still-here; }
+@unknown future(foo, bar) { raw { tokens: stay; } }

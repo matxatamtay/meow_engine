@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors=".long"
+  declaration[0] @1:9 custom="alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega" important=false

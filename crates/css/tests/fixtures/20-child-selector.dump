@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="nav > ul > li"
+  declaration[0] @1:17 list-style="none" important=false

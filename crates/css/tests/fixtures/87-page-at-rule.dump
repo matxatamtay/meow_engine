@@ -1,0 +1,1 @@
+rule[0] at @1:1 name="page" prelude=":first" block=Some("margin: 1cm; @top-center { content: \"Meow\"; }")

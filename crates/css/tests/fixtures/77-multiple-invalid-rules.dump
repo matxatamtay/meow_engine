@@ -1,0 +1,7 @@
+rule[0] style @1:10 selectors="a"
+  declaration[0] @1:14 color="red" important=false
+rule[1] style @1:44 selectors="b"
+  declaration[0] @1:48 color="blue" important=false
+error[0] @1:1 empty selector prelude source="{"
+error[1] @1:7 empty selector prelude source="{"
+error[2] @1:28 empty selector prelude source="{"

@@ -15,6 +15,7 @@ pub struct Options {
     pub width: u32,
     pub height: u32,
     pub dom_url: Option<String>,
+    pub css_url: Option<String>,
     pub help: bool,
 }
 
@@ -26,6 +27,7 @@ impl Default for Options {
             width: REFERENCE_WIDTH,
             height: REFERENCE_HEIGHT,
             dom_url: None,
+            css_url: None,
             help: false,
         }
     }
@@ -53,6 +55,17 @@ impl Options {
                             )
                         })?,
                 );
+            } else if argument == OsStr::new("--dump-css") {
+                options.css_url = Some(
+                    next_value(&mut arguments, "--dump-css")?
+                        .into_string()
+                        .map_err(|_| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidInput,
+                                "--dump-css URL must be valid UTF-8",
+                            )
+                        })?,
+                );
             } else if argument == OsStr::new("--width") {
                 options.width = parse_dimension(next_value(&mut arguments, "--width")?, "width")?;
             } else if argument == OsStr::new("--height") {
@@ -69,6 +82,14 @@ impl Options {
                     ));
                 }
                 options.dom_url = Some(value.to_owned());
+            } else if let Some(value) = argument.to_string_lossy().strip_prefix("--dump-css=") {
+                if value.is_empty() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "--dump-css requires a URL",
+                    ));
+                }
+                options.css_url = Some(value.to_owned());
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--width=") {
                 options.width = parse_dimension(OsString::from(value), "width")?;
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--height=") {
@@ -79,6 +100,13 @@ impl Options {
                     format!("unknown argument {:?}; use --help for usage", argument),
                 ));
             }
+        }
+
+        if options.dom_url.is_some() && options.css_url.is_some() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "--dump-dom and --dump-css cannot be used together",
+            ));
         }
 
         Ok(options)
@@ -98,9 +126,9 @@ pub fn write_output(path: &Path, png: &[u8]) -> io::Result<()> {
 pub fn print_help() {
     println!(
         "{name} {version}\n\n\
-         Render the reference scene or load a URL and dump its DOM.\n\n\
-         Usage:\n  {name} [--output PATH] [--width PIXELS] [--height PIXELS]\n  {name} --dump-dom URL [--output PATH]\n\n\
-         Options:\n  --dump-dom URL   Load HTTP(S)/about:blank and emit a deterministic DOM dump\n  --output PATH    Output PNG or DOM path [default PNG: {default_output}]\n  --width PIXELS   Framebuffer width [default: {default_width}]\n  --height PIXELS  Framebuffer height [default: {default_height}]\n  -h, --help       Print this help\n",
+         Render the reference scene or load a URL and dump its DOM or CSS.\n\n\
+         Usage:\n  {name} [--output PATH] [--width PIXELS] [--height PIXELS]\n  {name} --dump-dom URL [--output PATH]\n  {name} --dump-css URL [--output PATH]\n\n\
+         Options:\n  --dump-dom URL   Load HTTP(S)/about:blank and emit a deterministic DOM dump\n  --dump-css URL   Load a document and emit parsed stylesheets and diagnostics\n  --output PATH    Output PNG, DOM, or CSS dump [default PNG: {default_output}]\n  --width PIXELS   Framebuffer width [default: {default_width}]\n  --height PIXELS  Framebuffer height [default: {default_height}]\n  -h, --help       Print this help\n",
         name = env!("CARGO_PKG_NAME"),
         version = env!("CARGO_PKG_VERSION"),
         default_output = DEFAULT_OUTPUT,
@@ -165,6 +193,7 @@ mod tests {
         assert_eq!(options.height, 200);
         assert!(options.output_explicit);
         assert!(options.dom_url.is_none());
+        assert!(options.css_url.is_none());
         assert!(!options.help);
     }
 
@@ -181,7 +210,23 @@ mod tests {
     }
 
     #[test]
-    fn rejects_small_dimensions_and_unknown_options() {
+    fn parses_css_dump_mode() {
+        let options = Options::parse([OsString::from("--dump-css=https://example.test/")])
+            .expect("CSS options should parse");
+
+        assert_eq!(options.css_url.as_deref(), Some("https://example.test/"));
+        assert!(options.dom_url.is_none());
+    }
+
+    #[test]
+    fn rejects_conflicting_dump_modes_small_dimensions_and_unknown_options() {
+        assert!(
+            Options::parse([
+                OsString::from("--dump-dom=https://example.test/"),
+                OsString::from("--dump-css=https://example.test/"),
+            ])
+            .is_err()
+        );
         assert!(Options::parse([OsString::from("--width=1")]).is_err());
         assert!(Options::parse([OsString::from("--cat")]).is_err());
     }

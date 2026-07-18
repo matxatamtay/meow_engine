@@ -1,8 +1,8 @@
 # Current limitations
 
-MeowEngine currently covers the W1-W8 foundation, reference rendering, HTTP(S)
-loading, HTML tree construction, and top-level navigation. It is not yet a complete
-web platform.
+MeowEngine currently covers the W1-W9 foundation, including reference rendering,
+HTTP(S) loading, HTML tree construction, top-level navigation, stylesheet discovery,
+and parsed CSS rule snapshots. It is not yet a complete web platform.
 
 - CI covers Linux through `ubuntu-latest` and Ubuntu 24.04; macOS and Windows
   are not supported by the W1 gate.
@@ -36,3 +36,16 @@ web platform.
   the CPU renderer and PNG encoder.
 - Text, images, paths, clipping, transforms, filters, color management, and CSS paint
   semantics remain out of scope.
+
+## W9 CSS syntax and stylesheet limits
+
+- CSS parsing currently retains raw selector preludes. Selector grammar validation and
+  matching belong to W10.
+- Top-level at-rules are retained as raw prelude/block syntax. `@import`, media evaluation,
+  font loading, and nested semantic parsing are not active yet.
+- Linked stylesheets load sequentially in document order. Cache, preload, integrity,
+  referrer, CORS, alternate/disabled sheet state, and render-blocking policy are not yet modeled.
+- CSS decoding honors an HTTP charset when present and otherwise uses UTF-8. The complete
+  CSS encoding-detection algorithm remains future work.
+- The golden snapshot suite contains 100 curated fixtures. Selector grammar validation,
+  matching, and specificity remain W10 work.

@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors=".mèo, #猫, элемент"
+  declaration[0] @1:21 color="rebeccapurple" important=false

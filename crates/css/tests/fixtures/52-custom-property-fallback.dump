@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors=":root"
+  declaration[0] @1:9 --brand="rgb(" important=false
+rule[1] style @1:32 selectors="a"
+  declaration[0] @1:36 color="var(" important=false

@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="svg|circle, *|a, |button"
+  declaration[0] @1:28 stroke-width="2" important=false

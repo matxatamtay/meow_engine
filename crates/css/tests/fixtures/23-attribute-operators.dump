@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="[data-x] [lang|=en] [class~=tag] [href^=https] [href$=\".pdf\"] [href*=\"docs\"]"
+  declaration[0] @1:80 color="blue" important=false

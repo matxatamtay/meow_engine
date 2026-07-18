@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors="h1"
+  declaration[0] @1:6 margin="0" important=false
+rule[1] style @1:19 selectors="p"
+  declaration[0] @1:23 display="block" important=false

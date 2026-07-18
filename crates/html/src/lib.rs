@@ -125,6 +125,26 @@ enum NodeKind {
     },
 }
 
+/// One stylesheet-bearing DOM node discovered in tree order.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StylesheetCandidate {
+    /// Element node that owns this candidate.
+    pub node: NodeId,
+    /// Inline text or external href.
+    pub kind: StylesheetCandidateKind,
+    /// Optional media query text retained for a later semantic stage.
+    pub media: Option<String>,
+}
+
+/// Source form of a discovered stylesheet.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum StylesheetCandidateKind {
+    /// Text content of an HTML `<style>` element.
+    Inline(String),
+    /// `href` value of an HTML `<link rel="stylesheet">` element.
+    Linked(String),
+}
+
 /// HTML document quirks mode selected by the tree builder.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum DocumentQuirksMode {
@@ -197,6 +217,15 @@ impl Document {
     pub fn first_base_href(&self) -> Option<String> {
         let state = self.inner.state.borrow();
         find_base_href(&state, &self.root)
+    }
+
+    /// Returns CSS-bearing `<style>` and `<link rel="stylesheet">` nodes in tree order.
+    #[must_use]
+    pub fn stylesheet_candidates(&self) -> Vec<StylesheetCandidate> {
+        let state = self.inner.state.borrow();
+        let mut candidates = Vec::new();
+        collect_stylesheet_candidates(&state, &self.root, &mut candidates);
+        candidates
     }
 
     /// Produces a deterministic, indentation-based DOM dump.
@@ -396,6 +425,78 @@ fn find_base_href(state: &DomState, handle: &NodeHandle) -> Option<String> {
         .children
         .iter()
         .find_map(|child| find_base_href(state, child))
+}
+
+fn collect_stylesheet_candidates(
+    state: &DomState,
+    handle: &NodeHandle,
+    output: &mut Vec<StylesheetCandidate>,
+) {
+    let current = node(state, handle);
+    if let NodeKind::Element { name, attrs, .. } = &current.kind
+        && name.ns.as_ref() == "http://www.w3.org/1999/xhtml"
+    {
+        if name.local.as_ref() == "style" {
+            if css_type_is_supported(attribute_value(attrs, "type").as_deref()) {
+                let mut css = String::new();
+                collect_text_content(state, handle, &mut css);
+                output.push(StylesheetCandidate {
+                    node: handle.id,
+                    kind: StylesheetCandidateKind::Inline(css),
+                    media: attribute_value(attrs, "media"),
+                });
+            }
+        } else if name.local.as_ref() == "link" {
+            let is_stylesheet = attribute_value(attrs, "rel").is_some_and(|rel| {
+                rel.split_ascii_whitespace()
+                    .any(|token| token.eq_ignore_ascii_case("stylesheet"))
+            });
+            let is_css = css_type_is_supported(attribute_value(attrs, "type").as_deref());
+            if is_stylesheet
+                && is_css
+                && let Some(href) = attribute_value(attrs, "href")
+            {
+                output.push(StylesheetCandidate {
+                    node: handle.id,
+                    kind: StylesheetCandidateKind::Linked(href),
+                    media: attribute_value(attrs, "media"),
+                });
+            }
+        }
+    }
+    for child in &current.children {
+        collect_stylesheet_candidates(state, child, output);
+    }
+}
+
+fn css_type_is_supported(value: Option<&str>) -> bool {
+    value.is_none_or(|value| {
+        let value = value.trim();
+        value.is_empty() || value.eq_ignore_ascii_case("text/css")
+    })
+}
+
+fn attribute_value(attrs: &[Attribute], local_name: &str) -> Option<String> {
+    attrs
+        .iter()
+        .find(|attribute| {
+            attribute
+                .name
+                .local
+                .as_ref()
+                .eq_ignore_ascii_case(local_name)
+        })
+        .map(|attribute| attribute.value.to_string())
+}
+
+fn collect_text_content(state: &DomState, handle: &NodeHandle, output: &mut String) {
+    let current = node(state, handle);
+    if let NodeKind::Text(text) = &current.kind {
+        output.push_str(text);
+    }
+    for child in &current.children {
+        collect_text_content(state, child, output);
+    }
 }
 
 fn dump_node(state: &DomState, handle: &NodeHandle, depth: usize, output: &mut String) {
@@ -772,5 +873,29 @@ mod tests {
             parsed.document.first_base_href().as_deref(),
             Some("../assets/")
         );
+    }
+
+    #[test]
+    fn discovers_inline_and_linked_stylesheets_in_tree_order() {
+        let parsed = parse_utf8(
+            br#"<style type=" TEXT/CSS " media="screen">a { color: red }</style>
+                <link rel="preload StyleSheet" type=" text/css " href="theme.css" media="print">
+                <style type="text/less">ignored</style>
+                <link rel="stylesheet" type="text/less" href="ignored.less">
+                <link rel="stylesheet">"#,
+        );
+        let candidates = parsed.document.stylesheet_candidates();
+
+        assert_eq!(candidates.len(), 2);
+        assert_eq!(candidates[0].media.as_deref(), Some("screen"));
+        assert!(matches!(
+            &candidates[0].kind,
+            StylesheetCandidateKind::Inline(css) if css == "a { color: red }"
+        ));
+        assert_eq!(candidates[1].media.as_deref(), Some("print"));
+        assert!(matches!(
+            &candidates[1].kind,
+            StylesheetCandidateKind::Linked(href) if href == "theme.css"
+        ));
     }
 }

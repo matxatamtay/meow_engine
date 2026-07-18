@@ -6,6 +6,7 @@ A Linux-first browser engine and browser shell written in Rust.
 
 - `apps/meow-browser`: desktop browser shell
 - `apps/meow-headless`: deterministic headless entry point
+- `crates/css`: CSS Syntax adapter, declarations, recovery, and stable rule dumps
 - `crates/display-list`: backend-neutral paint commands
 - `crates/embedder-api`: browser-shell/engine boundary
 - `crates/engine`: top-level frame and navigation orchestration
@@ -79,6 +80,12 @@ Write the DOM dump to a file by adding `--output artifacts/example.dom.txt`.
 The same path supports `about:blank`, redirect metadata, byte limits, timeouts,
 cancellation, charset sniffing, `<base>` resolution, and a committed history entry.
 
+Dump parsed inline and linked stylesheets, including recoverable CSS diagnostics:
+
+```bash
+cargo run --locked -p meow-headless -- --dump-css https://example.com/
+```
+
 ## Documentation
 
 - [Bootstrap guide](docs/bootstrap.md)
@@ -86,6 +93,7 @@ cancellation, charset sniffing, `<base>` resolution, and a committed history ent
 - [W3 reference renderer](docs/w3-reference-renderer.md)
 - [W4 GPU skeleton and embedder API](docs/w4-gpu-and-embedder.md)
 - [W5-W8 loading, HTML, and navigation](docs/w5-w8-loading-html-navigation.md)
+- [W9 CSS syntax and stylesheet discovery](docs/w9-css-syntax-and-stylesheet-discovery.md)
 - [Current limitations](docs/limitations.md)
 - [ADR template](docs/adr/0000-template.md)
 - [ADR 0001: Bootstrap workspace and tooling](docs/adr/0001-bootstrap-workspace-and-tooling.md)

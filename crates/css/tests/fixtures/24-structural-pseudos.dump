@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="li:first-child, li:last-child, li:nth-child(2n + 1)"
+  declaration[0] @1:55 display="list-item" important=false

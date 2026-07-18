@@ -15,6 +15,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let mut engine = BrowserEngine::new();
+    if let Some(url) = options.css_url.as_deref() {
+        let state = engine.navigate(url, &CancellationToken::new()).await?;
+        let dump = state.dump_stylesheets();
+        if options.output_explicit {
+            write_output(&options.output, dump.as_bytes())?;
+            println!(
+                "wrote CSS dump for {} to {} ({} stylesheets, {} load errors)",
+                state.url,
+                options.output.display(),
+                state.stylesheets.len(),
+                state.stylesheet_errors.len()
+            );
+        } else {
+            print!("{dump}");
+        }
+        return Ok(());
+    }
     if let Some(url) = options.dom_url.as_deref() {
         let state = engine.navigate(url, &CancellationToken::new()).await?;
         let dump = state.document.dump();

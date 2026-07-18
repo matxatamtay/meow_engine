@@ -1,0 +1,8 @@
+rule[0] style @1:1 selectors="a"
+  declaration[0] @1:5 one="1" important=false
+  declaration[1] @1:21 two="2" important=false
+  declaration[2] @1:37 three="3" important=false
+  declaration[3] @1:52 four="4" important=false
+error[0] @1:19 unexpected end of input source="broken;"
+error[1] @1:33 invalid @ rule encountered: '@bad' source="@bad x"
+error[2] @1:47 unexpected token: Delim('?') source="???;"

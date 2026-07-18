@@ -70,6 +70,60 @@ fn dumps_dom_from_a_loaded_url() {
 }
 
 #[test]
+fn dumps_inline_and_linked_css_from_a_loaded_url() {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("test server should bind");
+    let address = listener.local_addr().unwrap();
+    let server = thread::spawn(move || {
+        for _ in 0..2 {
+            let (mut stream, _) = listener.accept().expect("headless client should connect");
+            let mut request = [0_u8; 4096];
+            let read = stream
+                .read(&mut request)
+                .expect("request should be readable");
+            let request = String::from_utf8_lossy(&request[..read]);
+            let path = request
+                .lines()
+                .next()
+                .and_then(|line| line.split_whitespace().nth(1))
+                .unwrap_or("/");
+            let (content_type, body): (&str, &[u8]) = match path {
+                "/page" => (
+                    "text/html; charset=utf-8",
+                    br#"<!doctype html><style>main { color: red; }</style><link rel="stylesheet" href="/theme.css">"#,
+                ),
+                "/theme.css" => (
+                    "text/css; charset=utf-8",
+                    b".card { display: block !important; }",
+                ),
+                _ => ("text/plain; charset=utf-8", b""),
+            };
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                body.len()
+            )
+            .expect("headers should be writable");
+            stream.write_all(body).expect("body should be writable");
+        }
+    });
+
+    let output = Command::new(env!("CARGO_BIN_EXE_meow-headless"))
+        .arg("--dump-css")
+        .arg(format!("http://{address}/page"))
+        .output()
+        .expect("meow-headless should run");
+    assert_success(&output);
+    server.join().expect("test server should finish");
+
+    let dump = String::from_utf8(output.stdout).expect("CSS dump should be UTF-8");
+    assert!(dump.contains("stylesheet[0] inline"));
+    assert!(dump.contains("selectors=\"main\""));
+    assert!(dump.contains("stylesheet[1] external"));
+    assert!(dump.contains("selectors=\".card\""));
+    assert!(dump.contains("important=true"));
+}
+
+#[test]
 fn creates_missing_output_directories() {
     let directory = temporary_directory("nested");
     let output_path = directory.join("a/b/reference.png");

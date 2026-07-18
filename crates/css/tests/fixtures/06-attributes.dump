@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="[data-state=\"open\"] > button:hover"
+  declaration[0] @1:38 display="inline-block" important=false

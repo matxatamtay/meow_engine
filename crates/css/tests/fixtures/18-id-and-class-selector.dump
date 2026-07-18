@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="#app.card.is-open"
+  declaration[0] @1:21 display="block" important=false

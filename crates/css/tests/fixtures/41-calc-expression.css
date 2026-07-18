@@ -1,0 +1,1 @@
+.layout { width: calc(100% - 2 * 1rem); margin-left: calc(-1 * var(--gap)); }

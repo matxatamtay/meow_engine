@@ -1,0 +1,5 @@
+rule[0] style @1:1 selectors="a"
+  declaration[0] @1:5 content="\"unterminated" important=false
+  declaration[1] @2:3 color="red" important=false
+rule[1] style @2:17 selectors="p"
+  declaration[0] @2:21 display="block" important=false

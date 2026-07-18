@@ -1,0 +1,1 @@
+rule[0] at @1:1 name="supports" prelude="(display: grid) and (not (display: subgrid))" block=Some("main { display: grid; }")

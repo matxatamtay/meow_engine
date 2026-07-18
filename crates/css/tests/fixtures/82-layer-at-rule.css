@@ -1,0 +1,1 @@
+@layer reset, theme; @layer theme { a { color: var(--brand); } }

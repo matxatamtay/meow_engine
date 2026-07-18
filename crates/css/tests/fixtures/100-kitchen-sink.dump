@@ -1,0 +1,10 @@
+rule[0] at @1:1 name="layer" prelude="base, components" block=None
+rule[1] style @2:1 selectors=":root"
+  declaration[0] @2:9 --gap="clamp(" important=false
+  declaration[1] @2:41 --brand="rgb(" important=false
+rule[2] at @3:1 name="layer" prelude="components" block=Some("article.card[data-state=\"open\"] > h2:first-child::before {\n    content: \"🐈 \";\n    color: var(--brand) !important;\n    margin: calc(var(--gap) * -1) var(--gap);\n    background: linear-gradient(90deg, #fff0, #fff), url(\"cat paw.png\");\n  }")
+rule[3] style @11:1 selectors="broken"
+  declaration[0] @11:10 valid="yes" important=false
+  declaration[1] @11:37 after="still-here" important=false
+rule[4] at @12:1 name="unknown" prelude="future(foo, bar)" block=Some("raw { tokens: stay; }")
+error[0] @11:35 unexpected end of input source="missing-colon;"

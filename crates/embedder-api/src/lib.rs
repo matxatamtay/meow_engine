@@ -38,7 +38,8 @@ impl Frame {
 }
 
 pub use meow_engine::{
-    BrowserUrl, CancellationToken, CharsetSource, DocumentState, HistoryEntry, NavigationError,
+    BrowserUrl, CancellationToken, CharsetSource, DocumentState, DocumentStylesheet, HistoryEntry,
+    NavigationError, StylesheetLoadError, StylesheetSource,
 };
 
 /// Browser-facing owner of frame and navigation coordinators.

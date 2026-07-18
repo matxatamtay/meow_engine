@@ -44,7 +44,7 @@ pub struct Request {
 }
 
 impl Request {
-    /// Creates a GET request with browser-oriented defaults.
+    /// Creates a GET request with browser-oriented document defaults.
     #[must_use]
     pub fn get(url: BrowserUrl) -> Self {
         let mut headers = HeaderMap::new();
@@ -58,6 +58,16 @@ impl Request {
             headers,
             body: Bytes::new(),
         }
+    }
+
+    /// Creates a GET request for an external CSS stylesheet.
+    #[must_use]
+    pub fn stylesheet(url: BrowserUrl) -> Self {
+        let mut request = Self::get(url);
+        request
+            .headers
+            .insert(ACCEPT, "text/css,*/*;q=0.1".parse().unwrap());
+        request
     }
 }
 

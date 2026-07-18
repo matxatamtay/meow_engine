@@ -1,0 +1,4 @@
+rule[0] style @1:6 selectors="a"
+  declaration[0] @1:10 color="red" important=false
+rule[1] style @1:28 selectors="p"
+  declaration[0] @1:32 display="block" important=false

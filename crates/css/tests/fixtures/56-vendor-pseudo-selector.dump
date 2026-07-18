@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="input::-webkit-slider-thumb, input::-moz-range-thumb"
+  declaration[0] @1:56 width="1rem" important=false

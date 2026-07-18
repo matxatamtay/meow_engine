@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="\u{feff}a"
+  declaration[0] @1:6 color="red" important=false

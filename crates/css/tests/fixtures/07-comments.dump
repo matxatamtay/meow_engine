@@ -1,0 +1,2 @@
+rule[0] style @1:12 selectors="a/**/.b"
+  declaration[0] @1:22 color="/* gap */blue" important=false

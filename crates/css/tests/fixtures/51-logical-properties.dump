@@ -1,0 +1,5 @@
+rule[0] style @1:1 selectors=".card"
+  declaration[0] @1:9 margin-inline="auto" important=false
+  declaration[1] @1:30 padding-block="1rem" important=false
+  declaration[2] @1:51 border-start-start-radius="4px" important=false
+  declaration[3] @1:83 inline-size="fit-content" important=false

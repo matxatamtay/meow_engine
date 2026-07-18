@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 encoding_rs.workspace = true
+meow-css = { path = "../css" }
 meow-display-list = { path = "../display-list" }
 meow-html = { path = "../html" }
 meow-net = { path = "../net" }

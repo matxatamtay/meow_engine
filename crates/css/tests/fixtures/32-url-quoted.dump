@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="body"
+  declaration[0] @1:8 background="url(\"images/cat paw.png\") center / cover no-repeat" important=false

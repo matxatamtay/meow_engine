@@ -1,0 +1,1 @@
+rule[0] at @1:1 name="font-face" prelude="" block=Some("font-family: \"Meow Sans\"; src: url(meow.woff2) format(\"woff2\"); font-weight: 100 900;")

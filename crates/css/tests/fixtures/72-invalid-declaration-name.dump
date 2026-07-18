@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors="a"
+  declaration[0] @1:19 --ok="yes" important=false
+  declaration[1] @1:30 good="value" important=false
+error[0] @1:5 unexpected token: Dimension { has_sign: false, value: 123.0, int_value: Some(123), unit: "bad" } source="123bad: nope;"

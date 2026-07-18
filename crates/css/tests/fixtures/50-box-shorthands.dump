@@ -1,0 +1,4 @@
+rule[0] style @1:1 selectors=".box"
+  declaration[0] @1:8 margin="1px 2px 3px 4px" important=false
+  declaration[1] @1:33 padding="1rem 2rem" important=false
+  declaration[2] @1:53 border="1px solid currentColor" important=false

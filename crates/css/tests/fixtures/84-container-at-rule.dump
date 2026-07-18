@@ -1,0 +1,1 @@
+rule[0] at @1:1 name="container" prelude="sidebar (inline-size > 30rem)" block=Some(".card { display: grid; }")

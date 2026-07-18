@@ -1,0 +1,1 @@
+.responsive { width: min(80vw, 70rem); height: max(20rem, 50vh); font-size: clamp(1rem, 2vw, 2rem); }

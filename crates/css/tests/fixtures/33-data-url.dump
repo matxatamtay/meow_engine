@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors=".icon"
+  declaration[0] @1:9 background-image="url(" important=false

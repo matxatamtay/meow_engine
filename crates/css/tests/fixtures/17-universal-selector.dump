@@ -1,0 +1,2 @@
+rule[0] style @1:1 selectors="*"
+  declaration[0] @1:5 box-sizing="border-box" important=false

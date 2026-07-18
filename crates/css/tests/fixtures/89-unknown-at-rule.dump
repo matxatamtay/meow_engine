@@ -1,0 +1,1 @@
+rule[0] at @1:1 name="meow" prelude="future syntax / stays raw" block=Some("nested: tokens; cat { paw: yes; }")
