@@ -1,0 +1,10 @@
+#layout-tree viewport=480x640
+principal-block box=0 source=2 cb=480 content=(0,0 480x91) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x91 overflow=(false,false 480x91)
+  anonymous-block box=8 source=- cb=480 content=(0,0 480x16) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x16 overflow=(false,false 480x16)
+    principal-inline box=1 source=3 cb=480 content=(0,0 0x16) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=0x16 overflow=(false,false 0x16)
+  principal-block box=2 source=4 cb=480 content=(0,16 480x75) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x75 overflow=(false,false 480x75)
+    principal-block box=3 source=5 cb=480 content=(0,16 480x75) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x75 overflow=(false,false 480x75)
+      principal-block box=4 source=6 cb=480 content=(0,16 480x40) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x40 overflow=(false,false 480x40)
+      principal-block box=5 source=7 cb=480 content=(0,56 480x35) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x35 overflow=(false,true 480x50)
+        principal-block box=6 source=8 cb=480 content=(0,56 480x25) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x25 overflow=(false,false 480x25)
+        principal-block box=7 source=9 cb=480 content=(0,81 480x25) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=480x25 overflow=(false,false 480x25)

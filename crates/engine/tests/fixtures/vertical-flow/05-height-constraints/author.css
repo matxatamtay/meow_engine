@@ -1,0 +1,1 @@
+html, body, main, section, div { display:block } #min { height:10px; min-height:40px } #max { max-height:35px } #max div { height:25px }

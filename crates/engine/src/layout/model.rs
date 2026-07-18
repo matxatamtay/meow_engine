@@ -130,6 +130,10 @@ impl LayoutTree {
         &self.roots
     }
 
+    pub(super) fn roots_mut(&mut self) -> &mut [LayoutBox] {
+        &mut self.roots
+    }
+
     #[must_use]
     pub fn find_source(&self, source: NodeId) -> Option<&LayoutBox> {
         self.roots.iter().find_map(|root| find_source(root, source))

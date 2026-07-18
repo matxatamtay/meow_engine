@@ -9,7 +9,7 @@ use meow_url_policy::BrowserUrl;
 
 use crate::{
     BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, LayoutTree, LayoutViewport,
-    build_box_tree, compute_styles, layout_box_tree,
+    build_box_tree, compute_styles, layout_box_tree, layout_normal_flow,
 };
 
 /// Source that selected the committed document encoding.
@@ -199,5 +199,19 @@ impl DocumentState {
     #[must_use]
     pub fn dump_layout(&self, viewport: LayoutViewport) -> String {
         self.layout(viewport).dump()
+    }
+
+    /// Resolves W15 vertical normal flow for one viewport.
+    #[must_use]
+    pub fn flow_layout(&self, viewport: LayoutViewport) -> LayoutTree {
+        let styles = self.computed_styles();
+        let boxes = build_box_tree(&self.document, &styles);
+        layout_normal_flow(&boxes, &styles, viewport)
+    }
+
+    /// Produces a deterministic vertical-flow layout dump.
+    #[must_use]
+    pub fn dump_flow_layout(&self, viewport: LayoutViewport) -> String {
+        self.flow_layout(viewport).dump()
     }
 }

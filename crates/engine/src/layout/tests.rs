@@ -73,3 +73,68 @@ fn min_and_max_width_clamp_the_selected_sizing_box() {
         CssPx(120)
     );
 }
+
+fn flow_layout(html: &str, css: &str, width: u32, height: u32) -> (Document, LayoutTree) {
+    let document = parse_utf8(html.as_bytes()).document;
+    let css = parse_stylesheet(css);
+    let styles = compute_styles(
+        &document,
+        &[CascadeStylesheet::new(CascadeOrigin::Author, &css)],
+    );
+    let boxes = build_box_tree(&document, &styles);
+    let layout = layout_normal_flow(&boxes, &styles, LayoutViewport::new(width, height));
+    (document, layout)
+}
+
+#[test]
+fn adjacent_block_margins_collapse_to_the_larger_positive_margin() {
+    let (document, tree) = flow_layout(
+        "<main><section id='first'></section><section id='second'></section></main>",
+        "html, body, main, section { display:block } #first { height:20px; margin-bottom:10px } #second { height:30px; margin-top:15px }",
+        300,
+        400,
+    );
+    let first = tree.find_source(source(&document, "#first")).unwrap();
+    let second = tree.find_source(source(&document, "#second")).unwrap();
+    let first_bottom = first.border_box_rect().y.0 + first.border_box_height().0;
+    assert_eq!(second.border_box_rect().y.0 - first_bottom, 15);
+}
+
+#[test]
+fn negative_and_mixed_margins_follow_the_w15_subset() {
+    assert_eq!(collapse_margins(CssPx(-10), CssPx(-5)), CssPx(-10));
+    assert_eq!(collapse_margins(CssPx(20), CssPx(-5)), CssPx(15));
+    assert_eq!(collapse_margins(CssPx(7), CssPx(12)), CssPx(12));
+}
+
+#[test]
+fn explicit_height_records_vertical_overflow_without_clipping_layout() {
+    let (document, tree) = flow_layout(
+        "<main id='outer'><section id='inner'></section></main>",
+        "html, body, main, section { display:block } #outer { height:20px } #inner { height:40px }",
+        300,
+        400,
+    );
+    let outer = tree.find_source(source(&document, "#outer")).unwrap();
+    let inner = tree.find_source(source(&document, "#inner")).unwrap();
+    assert_eq!(outer.content.height, CssPx(20));
+    assert_eq!(inner.content.height, CssPx(40));
+    assert!(outer.overflow.vertical);
+    assert_eq!(outer.overflow.scroll_height, CssPx(40));
+}
+
+#[test]
+fn min_and_max_height_clamp_content_height() {
+    let (document, tree) = flow_layout(
+        "<main><section id='min'></section><section id='max'><span>line</span><span>line</span></section></main>",
+        "html, body, main, section { display:block } span { display:block; height:20px } #min { height:10px; min-height:30px } #max { max-height:25px }",
+        300,
+        400,
+    );
+    let min = tree.find_source(source(&document, "#min")).unwrap();
+    let max = tree.find_source(source(&document, "#max")).unwrap();
+    assert_eq!(min.content.height, CssPx(30));
+    assert_eq!(max.content.height, CssPx(25));
+    assert!(max.overflow.vertical);
+    assert_eq!(max.overflow.scroll_height, CssPx(40));
+}

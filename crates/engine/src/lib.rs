@@ -14,7 +14,7 @@ pub use box_tree::{BoxId, BoxKind, BoxNode, BoxTree, build_box_tree};
 pub use error::NavigationError;
 pub use layout::{
     CssPx, EdgeSizes, LayoutBox, LayoutRect, LayoutTree, LayoutViewport, OverflowMetadata,
-    layout_box_tree,
+    collapse_margins, layout_box_tree, layout_normal_flow,
 };
 pub use meow_css::{PropertyId, parse_selector_list};
 pub use meow_net::CancellationToken;

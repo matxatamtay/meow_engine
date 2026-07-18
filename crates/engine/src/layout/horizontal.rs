@@ -262,7 +262,7 @@ fn auto_to_zero(value: AutoLength) -> CssPx {
     }
 }
 
-fn resolve_length(length: Length, percentage_basis: CssPx) -> CssPx {
+pub(super) fn resolve_length(length: Length, percentage_basis: CssPx) -> CssPx {
     let unit_basis = match length.unit {
         LengthUnit::Px => 1_i64,
         LengthUnit::Em | LengthUnit::Rem => i64::from(DEFAULT_FONT_SIZE),
