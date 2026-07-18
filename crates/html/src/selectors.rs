@@ -6,7 +6,7 @@ use meow_css::{
     CompoundSelector, PseudoClass, SelectorList, SimpleSelector, TypeSelector,
 };
 
-use super::{Document, DomState, NodeHandle, NodeKind, attribute_value, node};
+use super::dom::{Document, DomState, NodeHandle, NodeKind, attribute_value, node};
 
 impl Document {
     /// Returns one attribute value from an element, using HTML ASCII-insensitive names.
