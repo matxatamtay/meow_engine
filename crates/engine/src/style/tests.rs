@@ -107,3 +107,189 @@ fn unsupported_selectors_are_ignored_with_stable_diagnostics() {
         "blue"
     );
 }
+
+#[test]
+fn typed_box_values_and_custom_properties_resolve_with_fallbacks() {
+    let document = document("<main id='parent'><p id='child'></p><p id='cycle'></p></main>");
+    let author = parse_stylesheet(
+        "#parent {
+            --space: 8px;
+            --tone: #AbC;
+            --family: serif;
+            color: var(--tone);
+            font-family: mèo var(--family);
+            margin: var(--space);
+            padding: 1px 2px 3px 4px;
+            border-width: thin 2px;
+            box-sizing: border-box;
+         }
+         #child {
+            width: var(--missing, 12.500px);
+            color: var(--tone);
+         }
+         #cycle {
+            --a: var(--b);
+            --b: var(--a);
+            height: var(--a, 5px);
+         }",
+    );
+    let snapshot = compute_styles(
+        &document,
+        &[CascadeStylesheet::new(CascadeOrigin::Author, &author)],
+    );
+    let parent = snapshot
+        .style_for(element(&document, "#parent").id())
+        .unwrap();
+    let child = snapshot
+        .style_for(element(&document, "#child").id())
+        .unwrap();
+    let cycle = snapshot
+        .style_for(element(&document, "#cycle").id())
+        .unwrap();
+
+    assert_eq!(parent.get(PropertyId::Color), "#aabbcc");
+    assert_eq!(parent.get(PropertyId::FontFamily), "mèo serif");
+    assert_eq!(parent.get(PropertyId::MarginTop), "8px");
+    assert_eq!(parent.get(PropertyId::MarginLeft), "8px");
+    assert_eq!(parent.get(PropertyId::PaddingRight), "2px");
+    assert_eq!(parent.get(PropertyId::BorderTopWidth), "thin");
+    assert_eq!(parent.get(PropertyId::BorderRightWidth), "2px");
+    assert_eq!(parent.get(PropertyId::BoxSizing), "border-box");
+    assert_eq!(parent.custom_property("--space"), Some("8px"));
+    assert_eq!(child.get(PropertyId::Width), "12.5px");
+    assert_eq!(child.get(PropertyId::Color), "#aabbcc");
+    assert_eq!(cycle.get(PropertyId::Height), "5px");
+    assert!(
+        snapshot
+            .value_diagnostics()
+            .iter()
+            .any(|diagnostic| diagnostic.message.contains("cycle"))
+    );
+}
+
+#[test]
+fn attribute_mutation_restyles_only_changed_inheritance_branch() {
+    let document = document(
+        "<main><section id='left'><span id='left-child'></span></section><section id='right'><span id='right-child'></span></section></main>",
+    );
+    let author = parse_stylesheet("#left.active { color: red; } #right { color: blue; }");
+    let sheets = [CascadeStylesheet::new(CascadeOrigin::Author, &author)];
+    let mut engine = StyleEngine::new(&document, &sheets);
+    let left = element(&document, "#left");
+    let left_child = element(&document, "#left-child");
+    let right = element(&document, "#right");
+    let right_child = element(&document, "#right-child");
+    let right_generation = engine.style_generation(right.id()).unwrap();
+    let right_child_generation = engine.style_generation(right_child.id()).unwrap();
+
+    let mutation = document
+        .set_element_attribute(&left, "class", "active")
+        .unwrap()
+        .unwrap();
+    let invalidation = engine.invalidate(&mutation);
+    assert_eq!(invalidation.roots, vec![left.id()]);
+    assert_eq!(engine.dirty_flag(left.id()), DirtyFlag::SelfOnly);
+    assert_eq!(engine.dirty_flag(left_child.id()), DirtyFlag::Clean);
+
+    let restyle = engine.restyle_dirty();
+    assert!(restyle.restyled_nodes.contains(&left.id()));
+    assert!(restyle.restyled_nodes.contains(&left_child.id()));
+    assert!(!restyle.restyled_nodes.contains(&right.id()));
+    assert!(!restyle.restyled_nodes.contains(&right_child.id()));
+    assert_eq!(
+        engine.style_for(left.id()).unwrap().get(PropertyId::Color),
+        "red"
+    );
+    assert_eq!(
+        engine
+            .style_for(left_child.id())
+            .unwrap()
+            .get(PropertyId::Color),
+        "red"
+    );
+    assert_eq!(engine.style_generation(right.id()), Some(right_generation));
+    assert_eq!(
+        engine.style_generation(right_child.id()),
+        Some(right_child_generation)
+    );
+}
+
+#[test]
+fn ancestor_and_sibling_dependencies_expand_only_required_roots() {
+    let document = document(
+        "<main><section id='left'><span id='inside'></span></section><section id='right'><span id='right-child'></span></section><aside id='tail'></aside></main>",
+    );
+    let author =
+        parse_stylesheet(".active span { width: 10px; } #left.active + #right { color: green; }");
+    let sheets = [CascadeStylesheet::new(CascadeOrigin::Author, &author)];
+    let mut engine = StyleEngine::new(&document, &sheets);
+    let left = element(&document, "#left");
+    let inside = element(&document, "#inside");
+    let right = element(&document, "#right");
+    let right_child = element(&document, "#right-child");
+    let tail = element(&document, "#tail");
+    let tail_generation = engine.style_generation(tail.id()).unwrap();
+
+    let mutation = document
+        .set_element_attribute(&left, "class", "active")
+        .unwrap()
+        .unwrap();
+    let invalidation = engine.invalidate(&mutation);
+    assert!(invalidation.roots.contains(&left.id()));
+    assert!(invalidation.roots.contains(&right.id()));
+    assert!(!invalidation.roots.contains(&tail.id()));
+    assert_eq!(engine.dirty_flag(left.id()), DirtyFlag::Subtree);
+    assert_eq!(engine.dirty_flag(inside.id()), DirtyFlag::SelfOnly);
+    assert_eq!(engine.dirty_flag(right.id()), DirtyFlag::Subtree);
+    assert_eq!(engine.dirty_flag(right_child.id()), DirtyFlag::SelfOnly);
+
+    let restyle = engine.restyle_dirty();
+    assert_eq!(
+        engine
+            .style_for(inside.id())
+            .unwrap()
+            .get(PropertyId::Width),
+        "10px"
+    );
+    assert_eq!(
+        engine.style_for(right.id()).unwrap().get(PropertyId::Color),
+        "green"
+    );
+    assert!(!restyle.restyled_nodes.contains(&tail.id()));
+    assert_eq!(engine.style_generation(tail.id()), Some(tail_generation));
+}
+
+#[test]
+fn child_list_mutation_restyles_parent_subtree_but_not_siblings() {
+    let document = document(
+        "<main><section id='left'></section><section id='right'><span id='right-child'></span></section></main>",
+    );
+    let author = parse_stylesheet("#left:empty { display: none; } #left > span { color: red; }");
+    let sheets = [CascadeStylesheet::new(CascadeOrigin::Author, &author)];
+    let mut engine = StyleEngine::new(&document, &sheets);
+    let left = element(&document, "#left");
+    let right = element(&document, "#right");
+    let right_generation = engine.style_generation(right.id()).unwrap();
+
+    let (added, mutation) = document.append_element(&left, "span").unwrap();
+    let invalidation = engine.invalidate(&mutation);
+    assert_eq!(invalidation.roots, vec![left.id(), added.id()]);
+    assert_eq!(engine.dirty_flag(left.id()), DirtyFlag::SelfOnly);
+    assert_eq!(engine.dirty_flag(added.id()), DirtyFlag::Subtree);
+    let restyle = engine.restyle_dirty();
+    assert!(restyle.restyled_nodes.contains(&left.id()));
+    assert!(restyle.restyled_nodes.contains(&added.id()));
+    assert!(!restyle.restyled_nodes.contains(&right.id()));
+    assert_eq!(
+        engine
+            .style_for(left.id())
+            .unwrap()
+            .get(PropertyId::Display),
+        "inline"
+    );
+    assert_eq!(
+        engine.style_for(added.id()).unwrap().get(PropertyId::Color),
+        "red"
+    );
+    assert_eq!(engine.style_generation(right.id()), Some(right_generation));
+}

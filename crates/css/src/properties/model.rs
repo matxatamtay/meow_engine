@@ -1,36 +1,66 @@
-/// Longhand properties with W11 cascade and inheritance semantics.
+/// Longhand properties supported by the W12 computed-style stage.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PropertyId {
-    /// Element principal box generation.
     Display,
-    /// Foreground text color.
     Color,
-    /// Background fill color.
     BackgroundColor,
-    /// Font family list.
     FontFamily,
-    /// Font size.
     FontSize,
-    /// Font style.
     FontStyle,
-    /// Font weight.
     FontWeight,
-    /// Line box height.
     LineHeight,
-    /// Inline content alignment.
     TextAlign,
-    /// Element visibility.
     Visibility,
-    /// Element opacity.
     Opacity,
-    /// Preferred width.
     Width,
-    /// Preferred height.
     Height,
+    MarginTop,
+    MarginRight,
+    MarginBottom,
+    MarginLeft,
+    PaddingTop,
+    PaddingRight,
+    PaddingBottom,
+    PaddingLeft,
+    BorderTopWidth,
+    BorderRightWidth,
+    BorderBottomWidth,
+    BorderLeftWidth,
+    BoxSizing,
 }
 
-/// Every W11 property in deterministic snapshot order.
-pub const ALL_PROPERTIES: [PropertyId; 13] = [
+/// Every W12 property in deterministic registry order.
+pub const ALL_PROPERTIES: [PropertyId; 26] = [
+    PropertyId::Display,
+    PropertyId::Color,
+    PropertyId::BackgroundColor,
+    PropertyId::FontFamily,
+    PropertyId::FontSize,
+    PropertyId::FontStyle,
+    PropertyId::FontWeight,
+    PropertyId::LineHeight,
+    PropertyId::TextAlign,
+    PropertyId::Visibility,
+    PropertyId::Opacity,
+    PropertyId::Width,
+    PropertyId::Height,
+    PropertyId::MarginTop,
+    PropertyId::MarginRight,
+    PropertyId::MarginBottom,
+    PropertyId::MarginLeft,
+    PropertyId::PaddingTop,
+    PropertyId::PaddingRight,
+    PropertyId::PaddingBottom,
+    PropertyId::PaddingLeft,
+    PropertyId::BorderTopWidth,
+    PropertyId::BorderRightWidth,
+    PropertyId::BorderBottomWidth,
+    PropertyId::BorderLeftWidth,
+    PropertyId::BoxSizing,
+];
+
+/// W11 properties retained by the legacy byte-stable snapshot format.
+pub const W11_SNAPSHOT_PROPERTIES: [PropertyId; 13] = [
     PropertyId::Display,
     PropertyId::Color,
     PropertyId::BackgroundColor,
@@ -47,7 +77,6 @@ pub const ALL_PROPERTIES: [PropertyId; 13] = [
 ];
 
 impl PropertyId {
-    /// Resolves a standard ASCII-insensitive property name.
     #[must_use]
     pub fn from_name(name: &str) -> Option<Self> {
         match name.to_ascii_lowercase().as_str() {
@@ -64,11 +93,23 @@ impl PropertyId {
             "opacity" => Some(Self::Opacity),
             "width" => Some(Self::Width),
             "height" => Some(Self::Height),
+            "margin-top" => Some(Self::MarginTop),
+            "margin-right" => Some(Self::MarginRight),
+            "margin-bottom" => Some(Self::MarginBottom),
+            "margin-left" => Some(Self::MarginLeft),
+            "padding-top" => Some(Self::PaddingTop),
+            "padding-right" => Some(Self::PaddingRight),
+            "padding-bottom" => Some(Self::PaddingBottom),
+            "padding-left" => Some(Self::PaddingLeft),
+            "border-top-width" => Some(Self::BorderTopWidth),
+            "border-right-width" => Some(Self::BorderRightWidth),
+            "border-bottom-width" => Some(Self::BorderBottomWidth),
+            "border-left-width" => Some(Self::BorderLeftWidth),
+            "box-sizing" => Some(Self::BoxSizing),
             _ => None,
         }
     }
 
-    /// Canonical serialized property name.
     #[must_use]
     pub const fn name(self) -> &'static str {
         match self {
@@ -85,10 +126,22 @@ impl PropertyId {
             Self::Opacity => "opacity",
             Self::Width => "width",
             Self::Height => "height",
+            Self::MarginTop => "margin-top",
+            Self::MarginRight => "margin-right",
+            Self::MarginBottom => "margin-bottom",
+            Self::MarginLeft => "margin-left",
+            Self::PaddingTop => "padding-top",
+            Self::PaddingRight => "padding-right",
+            Self::PaddingBottom => "padding-bottom",
+            Self::PaddingLeft => "padding-left",
+            Self::BorderTopWidth => "border-top-width",
+            Self::BorderRightWidth => "border-right-width",
+            Self::BorderBottomWidth => "border-bottom-width",
+            Self::BorderLeftWidth => "border-left-width",
+            Self::BoxSizing => "box-sizing",
         }
     }
 
-    /// Whether the property's computed value inherits when no declaration wins.
     #[must_use]
     pub const fn inherited(self) -> bool {
         matches!(
@@ -104,7 +157,6 @@ impl PropertyId {
         )
     }
 
-    /// Engine-defined initial value for the W11 property subset.
     #[must_use]
     pub const fn initial_value(self) -> &'static str {
         match self {
@@ -120,35 +172,34 @@ impl PropertyId {
             Self::Visibility => "visible",
             Self::Opacity => "1",
             Self::Width | Self::Height => "auto",
+            Self::MarginTop | Self::MarginRight | Self::MarginBottom | Self::MarginLeft => "0px",
+            Self::PaddingTop | Self::PaddingRight | Self::PaddingBottom | Self::PaddingLeft => {
+                "0px"
+            }
+            Self::BorderTopWidth
+            | Self::BorderRightWidth
+            | Self::BorderBottomWidth
+            | Self::BorderLeftWidth => "0px",
+            Self::BoxSizing => "content-box",
         }
     }
 }
 
-/// CSS-wide keyword that affects specified-to-computed value resolution.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CssWideKeyword {
-    /// Use the parent computed value, or the initial value at the root.
     Inherit,
-    /// Use the property's initial value.
     Initial,
-    /// Inherit inherited properties and initialize non-inherited properties.
     Unset,
 }
 
-/// W11 semantic value retained after declaration filtering.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SpecifiedValue {
-    /// Property-specific component value retained as normalized source text.
     Value(String),
-    /// CSS-wide keyword.
     CssWide(CssWideKeyword),
 }
 
-/// One supported property declaration ready for the cascade.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PropertyDeclaration {
-    /// Supported longhand property.
     pub property: PropertyId,
-    /// Property value or CSS-wide keyword.
     pub value: SpecifiedValue,
 }

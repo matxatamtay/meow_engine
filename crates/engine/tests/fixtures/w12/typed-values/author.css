@@ -1,0 +1,26 @@
+:root {
+  --space: 6.2500px;
+  --tone: #0aC8;
+  --family: serif;
+  --fallback-size: var(--missing, 14px);
+}
+#card {
+  display: grid;
+  color: var(--tone);
+  background-color: currentColor;
+  font-family: mèo var(--family);
+  margin: var(--space);
+  padding: 1px 2em 3% 4rem;
+  border-width: thin 2px thick 0;
+  box-sizing: border-box;
+  opacity: 1.2;
+}
+#child {
+  width: var(--fallback-size);
+  color: var(--tone);
+}
+#cycle {
+  --a: var(--b);
+  --b: var(--a);
+  height: var(--a, 5px);
+}

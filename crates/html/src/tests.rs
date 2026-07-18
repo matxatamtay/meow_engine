@@ -90,3 +90,33 @@ fn discovers_inline_and_linked_stylesheets_in_tree_order() {
         StylesheetCandidateKind::Linked(href) if href == "theme.css"
     ));
 }
+
+#[test]
+fn explicit_mutations_return_precise_records_and_skip_noops() {
+    let document = parse_utf8(b"<main id='root'><p id='child'>cat</p></main>").document;
+    let root = document
+        .query_selector(&meow_css::parse_selector_list("#root").unwrap())
+        .unwrap();
+    let child = document
+        .query_selector(&meow_css::parse_selector_list("#child").unwrap())
+        .unwrap();
+
+    let mutation = document
+        .set_element_attribute(&child, "class", "active")
+        .unwrap()
+        .unwrap();
+    assert_eq!(mutation.kind, DomMutationKind::Attributes);
+    assert_eq!(mutation.target, child.id());
+    assert!(
+        document
+            .set_element_attribute(&child, "class", "active")
+            .unwrap()
+            .is_none()
+    );
+
+    let (added, mutation) = document.append_element(&root, "section").unwrap();
+    assert_eq!(mutation.kind, DomMutationKind::ChildList);
+    assert_eq!(mutation.added_nodes, vec![added.id()]);
+    let removal = document.remove_subtree(&added).unwrap();
+    assert_eq!(removal.removed_nodes, vec![added.id()]);
+}

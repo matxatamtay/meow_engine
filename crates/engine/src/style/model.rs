@@ -1,105 +1,124 @@
 use std::{collections::BTreeMap, fmt::Write as _};
 
-use meow_css::{ALL_PROPERTIES, PropertyId, Stylesheet};
+use meow_css::{ALL_PROPERTIES, ComputedValue, PropertyId, Stylesheet, W11_SNAPSHOT_PROPERTIES};
 use meow_html::NodeId;
 
-/// Cascade origin supported by W11.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CascadeOrigin {
-    /// Built-in user-agent rules.
     UserAgent,
-    /// User preference rules.
     User,
-    /// Document author rules.
     Author,
 }
 
-/// One stylesheet paired with its cascade origin.
 #[derive(Clone, Copy, Debug)]
 pub struct CascadeStylesheet<'a> {
-    /// Sheet origin.
     pub origin: CascadeOrigin,
-    /// Parsed stylesheet.
     pub stylesheet: &'a Stylesheet,
 }
 
 impl<'a> CascadeStylesheet<'a> {
-    /// Creates one cascade input sheet.
     #[must_use]
     pub const fn new(origin: CascadeOrigin, stylesheet: &'a Stylesheet) -> Self {
         Self { origin, stylesheet }
     }
 }
 
-/// Computed values for the complete W11 property subset.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ComputedStyle {
     pub(super) values: BTreeMap<PropertyId, String>,
+    pub(super) typed_values: BTreeMap<PropertyId, ComputedValue>,
+    pub(super) custom_properties: BTreeMap<String, String>,
 }
 
 impl ComputedStyle {
-    /// Returns one computed property value.
     #[must_use]
     pub fn get(&self, property: PropertyId) -> &str {
         self.values
             .get(&property)
             .map(String::as_str)
-            .expect("every W11 property has a computed value")
+            .expect("every supported property has a computed value")
     }
 
-    /// Iterates computed values in deterministic property order.
+    #[must_use]
+    pub fn typed(&self, property: PropertyId) -> &ComputedValue {
+        self.typed_values
+            .get(&property)
+            .expect("every supported property has a typed computed value")
+    }
+
+    #[must_use]
+    pub fn custom_property(&self, name: &str) -> Option<&str> {
+        self.custom_properties.get(name).map(String::as_str)
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (PropertyId, &str)> {
         ALL_PROPERTIES
             .into_iter()
             .map(|property| (property, self.get(property)))
     }
+
+    pub fn custom_properties(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.custom_properties
+            .iter()
+            .map(|(name, value)| (name.as_str(), value.as_str()))
+    }
+
+    pub(super) fn inherited_inputs_equal(&self, other: &Self) -> bool {
+        self.custom_properties == other.custom_properties
+            && ALL_PROPERTIES
+                .into_iter()
+                .filter(|property| property.inherited())
+                .all(|property| self.typed(property) == other.typed(property))
+    }
 }
 
-/// One element and its computed style in document tree order.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ComputedElementStyle {
-    /// Stable node identity.
     pub node: NodeId,
-    /// Element local name.
     pub local_name: String,
-    /// HTML `id` value, when present.
     pub element_id: Option<String>,
-    /// Complete computed style.
+    pub generation: u64,
     pub style: ComputedStyle,
 }
 
-/// Non-fatal style preparation diagnostic.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct StyleDiagnostic {
-    /// Input stylesheet index.
     pub stylesheet_index: usize,
-    /// Source-order index within the stylesheet.
     pub rule_source_order: usize,
-    /// Human-readable failure reason.
     pub message: String,
 }
 
-/// Tree-ordered computed styles and ignored-rule diagnostics.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ValueDiagnostic {
+    pub node: NodeId,
+    pub property: Option<PropertyId>,
+    pub custom_property: Option<String>,
+    pub message: String,
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ComputedStyleSnapshot {
     pub(super) elements: Vec<ComputedElementStyle>,
     pub(super) diagnostics: Vec<StyleDiagnostic>,
+    pub(super) value_diagnostics: Vec<ValueDiagnostic>,
 }
 
 impl ComputedStyleSnapshot {
-    /// Returns computed element records in document tree order.
     #[must_use]
     pub fn elements(&self) -> &[ComputedElementStyle] {
         &self.elements
     }
 
-    /// Returns non-fatal style diagnostics.
     #[must_use]
     pub fn diagnostics(&self) -> &[StyleDiagnostic] {
         &self.diagnostics
     }
 
-    /// Finds one computed style by stable node identity.
+    #[must_use]
+    pub fn value_diagnostics(&self) -> &[ValueDiagnostic] {
+        &self.value_diagnostics
+    }
+
     #[must_use]
     pub fn style_for(&self, node: NodeId) -> Option<&ComputedStyle> {
         self.elements
@@ -108,7 +127,7 @@ impl ComputedStyleSnapshot {
             .map(|entry| &entry.style)
     }
 
-    /// Produces a deterministic snapshot independent of process-global document IDs.
+    /// Legacy W11 snapshot, intentionally limited to the original 13 properties.
     #[must_use]
     pub fn dump(&self) -> String {
         let mut output = String::new();
@@ -119,19 +138,94 @@ impl ComputedStyleSnapshot {
                 element.node.slot, element.local_name, element.element_id
             )
             .expect("writing to String cannot fail");
-            for (property, value) in element.style.iter() {
-                writeln!(output, "  {}={value:?}", property.name())
+            for property in W11_SNAPSHOT_PROPERTIES {
+                writeln!(
+                    output,
+                    "  {}={:?}",
+                    property.name(),
+                    element.style.get(property)
+                )
+                .expect("writing to String cannot fail");
+            }
+        }
+        write_diagnostics(&mut output, &self.diagnostics, &self.value_diagnostics);
+        output
+    }
+
+    /// W12 snapshot with typed kinds, box properties, custom properties, and generations.
+    #[must_use]
+    pub fn dump_typed(&self) -> String {
+        let mut output = String::new();
+        for element in &self.elements {
+            writeln!(
+                output,
+                "element slot={} name={:?} id={:?} generation={}",
+                element.node.slot, element.local_name, element.element_id, element.generation
+            )
+            .expect("writing to String cannot fail");
+            for property in ALL_PROPERTIES {
+                writeln!(
+                    output,
+                    "  {} kind={} value={:?}",
+                    property.name(),
+                    element.style.typed(property).kind_name(),
+                    element.style.get(property)
+                )
+                .expect("writing to String cannot fail");
+            }
+            for (name, value) in element.style.custom_properties() {
+                writeln!(output, "  custom {name:?}={value:?}")
                     .expect("writing to String cannot fail");
             }
         }
-        for diagnostic in &self.diagnostics {
-            writeln!(
-                output,
-                "style-error sheet={} rule={} message={:?}",
-                diagnostic.stylesheet_index, diagnostic.rule_source_order, diagnostic.message
-            )
-            .expect("writing to String cannot fail");
-        }
+        write_diagnostics(&mut output, &self.diagnostics, &self.value_diagnostics);
         output
     }
+}
+
+fn write_diagnostics(
+    output: &mut String,
+    diagnostics: &[StyleDiagnostic],
+    value_diagnostics: &[ValueDiagnostic],
+) {
+    for diagnostic in diagnostics {
+        writeln!(
+            output,
+            "style-error sheet={} rule={} message={:?}",
+            diagnostic.stylesheet_index, diagnostic.rule_source_order, diagnostic.message
+        )
+        .expect("writing to String cannot fail");
+    }
+    for diagnostic in value_diagnostics {
+        writeln!(
+            output,
+            "value-error slot={} property={:?} custom={:?} message={:?}",
+            diagnostic.node.slot,
+            diagnostic.property.map(PropertyId::name),
+            diagnostic.custom_property,
+            diagnostic.message
+        )
+        .expect("writing to String cannot fail");
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub enum DirtyFlag {
+    #[default]
+    Clean,
+    SelfOnly,
+    Subtree,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct InvalidationReport {
+    pub roots: Vec<NodeId>,
+    pub dirty_nodes: Vec<NodeId>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct RestyleReport {
+    pub generation: u64,
+    pub restyled_nodes: Vec<NodeId>,
+    pub changed_nodes: Vec<NodeId>,
 }

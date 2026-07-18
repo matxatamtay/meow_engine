@@ -159,9 +159,15 @@ impl DocumentState {
         compute_styles(&self.document, &stylesheets)
     }
 
-    /// Produces the deterministic W11 computed-style snapshot.
+    /// Produces the deterministic W11-compatible computed-style snapshot.
     #[must_use]
     pub fn dump_computed_styles(&self) -> String {
         self.computed_styles().dump()
+    }
+
+    /// Produces the deterministic W12 typed computed-style snapshot.
+    #[must_use]
+    pub fn dump_typed_computed_styles(&self) -> String {
+        self.computed_styles().dump_typed()
     }
 }

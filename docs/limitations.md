@@ -38,7 +38,7 @@ computed-style snapshots. It is not yet a complete web platform.
 - Text, images, paths, clipping, transforms, filters, color management, and CSS paint
   semantics remain out of scope.
 
-## W9-W11 CSS, selector, and cascade limits
+## W9-W12 CSS, selector, cascade, and invalidation limits
 
 - W9 stylesheet snapshots still retain raw selector preludes for deterministic compatibility.
   W10 parses them on demand through `StyleRule::selector_list()`.
@@ -46,13 +46,20 @@ computed-style snapshots. It is not yet a complete web platform.
   and structural child/of-type pseudo-classes. Dynamic pseudo-classes, pseudo-elements,
   namespaces, logical selector functions, shadow DOM, and `nth-child(... of ...)` are not
   implemented.
-- W11 computes 13 longhand properties with origin, importance, specificity, source order,
-  inheritance, and `inherit`/`initial`/`unset`. Shorthands, custom properties, full value
-  validation, `revert`, cascade layers, animations, transitions, style attributes, and
-  presentation hints remain future work.
-- Computed values retain non-keyword declaration text. Unit conversion, percentage resolution,
-  `currentColor`, font metrics, used values, style invalidation, and layout integration remain
-  future work.
+- W12 computes 26 typed longhands, including four-sided margin, padding, and border-width
+  properties plus `box-sizing`. It supports a bounded `margin`/`padding`/`border-width`
+  expansion, fixed-precision lengths and opacity, named/hex colors, `currentColor`, and selected
+  display/font/text keywords. `calc()`, broad unit coverage, color functions, complete value
+  grammars, and general shorthand expansion remain future work.
+- Custom properties inherit and support recursive `var()` substitution, fallback, and cycle
+  diagnostics. `@property`, environment variables, registered values, animation semantics, and
+  token-list shorthand re-expansion are not implemented.
+- `StyleEngine` consumes explicit DOM mutation records and caches per-element generations.
+  Dependency summaries distinguish ancestor, adjacent-sibling, subsequent-sibling, structural,
+  and `:empty` effects. They are feature-level rather than a per-rule selector index, so some
+  affected subtrees may be conservatively restyled, but unrelated branches keep their cache.
+- Cascade layers, animations, transitions, style attributes, presentation hints, used values,
+  layout integration, and paint invalidation remain future work.
 - Top-level at-rules are retained as raw prelude/block syntax. `DocumentState` activates only
   empty, `all`, or `screen` media attributes; full media-query evaluation, `@import`, font
   loading, and nested semantic parsing are not active yet.
@@ -62,4 +69,5 @@ computed-style snapshots. It is not yet a complete web platform.
   CSS encoding-detection algorithm remains future work.
 - The W9 golden snapshot suite contains 100 curated fixtures. The W10 selector suite adds
   70 valid matching cases and 19 invalid/unsupported syntax cases. W11 adds two complete
-  computed-style snapshot fixtures plus focused cascade and inheritance unit tests.
+  computed-style snapshots. W12 adds typed-value and mutation-invalidation snapshots plus
+  focused cache-generation conformance tests.

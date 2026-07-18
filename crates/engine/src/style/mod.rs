@@ -1,12 +1,12 @@
-//! W11 cascade, inheritance, and deterministic computed-style snapshots.
-
+mod cache;
 mod cascade;
 mod model;
+mod variables;
 
-pub use cascade::compute_styles;
+pub use cache::{StyleEngine, compute_styles};
 pub use model::{
     CascadeOrigin, CascadeStylesheet, ComputedElementStyle, ComputedStyle, ComputedStyleSnapshot,
-    StyleDiagnostic,
+    DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, ValueDiagnostic,
 };
 
 #[cfg(test)]

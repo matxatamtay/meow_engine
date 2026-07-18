@@ -1,0 +1,10 @@
+mutation kind=Attributes target=7 attribute=Some("class") added=[] removed=[]
+invalidation roots=[7, 10]
+invalidation dirty=[7, 8, 10, 11]
+restyle generation=2 restyled=[7, 8, 10, 11] changed=[7, 8, 10, 11]
+cache selector="#root" slot=5 generation=1 color="black" width="auto" margin-top="0px"
+cache selector="#left" slot=7 generation=2 color="#00cc88" width="auto" margin-top="1px"
+cache selector="#left-child" slot=8 generation=2 color="#00cc88" width="12.5px" margin-top="0px"
+cache selector="#right" slot=10 generation=2 color="#aabbcc" width="auto" margin-top="0px"
+cache selector="#right-child" slot=11 generation=2 color="#aabbcc" width="auto" margin-top="0px"
+cache selector="#tail" slot=13 generation=1 color="black" width="auto" margin-top="0px"

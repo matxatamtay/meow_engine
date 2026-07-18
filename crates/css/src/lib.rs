@@ -2,18 +2,23 @@
 
 mod properties;
 mod selectors;
+mod syntax;
 
 use std::fmt;
 
 pub use properties::{
-    ALL_PROPERTIES, CssWideKeyword, PropertyDeclaration, PropertyId, SpecifiedValue,
-    parse_property_declaration,
+    ALL_PROPERTIES, BorderWidthValue, BoxSizingValue, ColorValue, ComputedValue, CssNumber,
+    CssWideKeyword, DisplayValue, Length, LengthOrAuto, LengthUnit, NamedColor,
+    PropertyDeclaration, PropertyId, SpecifiedValue, W11_SNAPSHOT_PROPERTIES, parse_computed_value,
+    parse_css_wide_keyword, parse_property_declaration, parse_property_declarations,
 };
 pub use selectors::{
     AnPlusB, AttributeCaseSensitivity, AttributeMatcher, AttributeSelector, Combinator,
     ComplexSelector, CompoundSelector, PseudoClass, SelectorList, SelectorParseError,
     SelectorSegment, SimpleSelector, Specificity, TypeSelector, parse_selector_list,
 };
+
+use syntax::{consume_component_values, legacy_declaration_value};
 
 use cssparser::{
     AtRuleParser, CowRcStr, DeclarationParser, ParseError, Parser, ParserInput, ParserState,
@@ -77,7 +82,7 @@ impl Stylesheet {
                             declaration.location.line,
                             declaration.location.column,
                             declaration.name,
-                            declaration.value,
+                            legacy_declaration_value(declaration),
                             declaration.important
                         ));
                     }
@@ -308,7 +313,7 @@ impl<'i> DeclarationParser<'i> for DeclarationAdapter {
 
         while !input.is_exhausted() {
             let state = input.state();
-            match input.next_including_whitespace() {
+            let nested_block = match input.next_including_whitespace() {
                 Ok(Token::Delim('!')) => {
                     input.reset(&state);
                     let is_important = input
@@ -323,9 +328,19 @@ impl<'i> DeclarationParser<'i> for DeclarationAdapter {
                     }
                     input.reset(&state);
                     let _ = input.next_including_whitespace();
+                    false
                 }
-                Ok(_) => {}
+                Ok(
+                    Token::Function(_)
+                    | Token::ParenthesisBlock
+                    | Token::SquareBracketBlock
+                    | Token::CurlyBracketBlock,
+                ) => true,
+                Ok(_) => false,
                 Err(_) => break,
+            };
+            if nested_block {
+                input.parse_nested_block(consume_component_values)?;
             }
         }
 
@@ -415,6 +430,20 @@ mod tests {
         assert_eq!(rule.declarations[1].value, "calc(100% - 2px)");
         assert!(rule.declarations[1].important);
         assert_eq!(rule.declarations[2].name, "--Theme");
+    }
+
+    #[test]
+    fn semantic_values_retain_nested_blocks_while_w9_dump_stays_compatible() {
+        let stylesheet =
+            parse_stylesheet("a { color: var(--tone); background-image: url(/assets/cat.png); }");
+        let Rule::Style(rule) = &stylesheet.rules[0] else {
+            panic!("expected style rule");
+        };
+        assert_eq!(rule.declarations[0].value, "var(--tone)");
+        assert_eq!(rule.declarations[1].value, "url(/assets/cat.png)");
+        let dump = stylesheet.dump();
+        assert!(dump.contains("color=\"var(\""));
+        assert!(dump.contains("background-image=\"url(/assets/cat.png)\""));
     }
 
     #[test]

@@ -19,7 +19,8 @@ pub use model::{
 pub use navigator::Navigator;
 pub use style::{
     CascadeOrigin, CascadeStylesheet, ComputedElementStyle, ComputedStyle, ComputedStyleSnapshot,
-    StyleDiagnostic, compute_styles,
+    DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, StyleEngine, ValueDiagnostic,
+    compute_styles,
 };
 
 /// Human-readable engine name used by first-party applications.
