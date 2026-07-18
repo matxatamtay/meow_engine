@@ -1,5 +1,7 @@
 //! Top-level orchestration crate for MeowEngine.
 
+pub mod reference_renderer;
+
 /// Human-readable engine name used by first-party applications.
 pub const ENGINE_NAME: &str = "MeowEngine";
 
