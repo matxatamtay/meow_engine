@@ -14,5 +14,11 @@ rust-version = "1.97"
 license = "MPL-2.0"
 publish = false
 
+[workspace.dependencies]
+softbuffer = { version = "0.4.8", default-features = false, features = ["wayland", "wayland-dlopen", "x11", "x11-dlopen"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+winit = "0.30.13"
+
 [workspace.lints.rust]
 unsafe_code = "deny"
