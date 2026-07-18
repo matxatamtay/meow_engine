@@ -1,0 +1,7 @@
+# families	weight	slant	text	expected
+Meow Sans	400	normal	Browser engine	Meow Sans
+Meow Sans	400	normal	Tiếng Việt	Meow Sans|Meow Sans Vietnamese|Meow Sans|Meow Sans Vietnamese|Meow Sans
+Missing Family	400	normal	Tiếng Việt	Meow Sans Vietnamese
+Meow Sans	700	normal	Việt	Meow Sans
+Meow Sans	400	italic	Mèo	Meow Sans
+Meow Sans	400	normal	مرحبا	Meow Arabic

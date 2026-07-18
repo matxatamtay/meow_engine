@@ -3,6 +3,7 @@
 mod box_tree;
 mod encoding;
 mod error;
+mod fonts;
 mod layout;
 mod model;
 mod navigator;
@@ -13,6 +14,10 @@ use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene
 
 pub use box_tree::{BoxId, BoxKind, BoxNode, BoxTree, build_box_tree};
 pub use error::NavigationError;
+pub use fonts::{
+    FontCoverage, FontDatabase, FontFace, FontId, FontRequest, FontSlant, FontSource, FontSpan,
+    Script, script_for,
+};
 pub use layout::{
     CssPx, EdgeSizes, LayoutBox, LayoutRect, LayoutTree, LayoutViewport, OverflowMetadata,
     collapse_margins, layout_box_tree, layout_normal_flow,

@@ -1328,6 +1328,7 @@ dependencies = [
  "meow-net",
  "meow-renderer",
  "meow-url-policy",
+ "skrifa",
  "tokio",
  "tracing",
 ]

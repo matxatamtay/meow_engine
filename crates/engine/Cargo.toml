@@ -16,6 +16,7 @@ meow-display-list = { path = "../display-list" }
 meow-html = { path = "../html" }
 meow-net = { path = "../net" }
 meow-url-policy = { path = "../url-policy" }
+skrifa.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
