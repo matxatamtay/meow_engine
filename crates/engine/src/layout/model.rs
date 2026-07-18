@@ -135,6 +135,11 @@ impl LayoutTree {
     }
 
     #[must_use]
+    pub fn box_by_id(&self, id: BoxId) -> Option<&LayoutBox> {
+        self.roots.iter().find_map(|root| find_box(root, id))
+    }
+
+    #[must_use]
     pub fn find_source(&self, source: NodeId) -> Option<&LayoutBox> {
         self.roots.iter().find_map(|root| find_source(root, source))
     }
@@ -153,6 +158,13 @@ impl LayoutTree {
         }
         output
     }
+}
+
+fn find_box(node: &LayoutBox, id: BoxId) -> Option<&LayoutBox> {
+    if node.box_id == id {
+        return Some(node);
+    }
+    node.children.iter().find_map(|child| find_box(child, id))
 }
 
 fn find_source(node: &LayoutBox, source: NodeId) -> Option<&LayoutBox> {

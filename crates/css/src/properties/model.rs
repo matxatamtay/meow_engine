@@ -10,6 +10,7 @@ pub enum PropertyId {
     FontWeight,
     LineHeight,
     TextAlign,
+    TextDecorationLine,
     Visibility,
     Opacity,
     Width,
@@ -34,7 +35,7 @@ pub enum PropertyId {
 }
 
 /// Every supported property in deterministic registry order.
-pub const ALL_PROPERTIES: [PropertyId; 30] = [
+pub const ALL_PROPERTIES: [PropertyId; 31] = [
     PropertyId::Display,
     PropertyId::Color,
     PropertyId::BackgroundColor,
@@ -44,6 +45,7 @@ pub const ALL_PROPERTIES: [PropertyId; 30] = [
     PropertyId::FontWeight,
     PropertyId::LineHeight,
     PropertyId::TextAlign,
+    PropertyId::TextDecorationLine,
     PropertyId::Visibility,
     PropertyId::Opacity,
     PropertyId::Width,
@@ -127,6 +129,7 @@ impl PropertyId {
             "font-weight" => Self::FontWeight,
             "line-height" => Self::LineHeight,
             "text-align" => Self::TextAlign,
+            "text-decoration-line" => Self::TextDecorationLine,
             "visibility" => Self::Visibility,
             "opacity" => Self::Opacity,
             "width" => Self::Width,
@@ -164,6 +167,7 @@ impl PropertyId {
             Self::FontWeight => "font-weight",
             Self::LineHeight => "line-height",
             Self::TextAlign => "text-align",
+            Self::TextDecorationLine => "text-decoration-line",
             Self::Visibility => "visibility",
             Self::Opacity => "opacity",
             Self::Width => "width",
@@ -215,6 +219,7 @@ impl PropertyId {
             Self::FontWeight => "normal",
             Self::LineHeight => "normal",
             Self::TextAlign => "start",
+            Self::TextDecorationLine => "none",
             Self::Visibility => "visible",
             Self::Opacity => "1",
             Self::Width | Self::Height => "auto",

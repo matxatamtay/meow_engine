@@ -1,0 +1,12 @@
+html, body, article, header, h1, h2, p, section, footer { display:block; margin:0; padding:0 }
+strong { display:inline }
+body { background-color:#fff7e8; color:#3d2b1f }
+article { width:286px; margin:12px auto; padding:16px; border-width:2px; box-sizing:border-box; background-color:white }
+h1 { margin-bottom:6px; font-weight:bold; color:crimson; text-align:center }
+.dek { margin-bottom:16px; color:gray; font-style:italic; text-align:center }
+section { margin-bottom:14px; padding:8px; border-width:1px; background-color:#fffaf0 }
+h2 { margin-bottom:8px; font-weight:bold; color:teal }
+p { text-align:left }
+strong { font-weight:bold; color:navy }
+.accent { color:purple; text-decoration-line:underline }
+footer { color:maroon; font-style:italic; text-align:right }

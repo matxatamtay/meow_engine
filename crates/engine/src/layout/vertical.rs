@@ -1,6 +1,8 @@
+use std::collections::BTreeMap;
+
 use meow_css::{BoxSizingValue, ComputedValue, LengthOrAuto, LengthOrNone, PropertyId};
 
-use crate::{BoxKind, BoxTree, ComputedStyle, ComputedStyleSnapshot};
+use crate::{BoxId, BoxKind, BoxTree, ComputedStyle, ComputedStyleSnapshot};
 
 use super::{
     horizontal::{layout_box_tree, resolve_length},
@@ -16,8 +18,25 @@ pub fn layout_normal_flow(
     styles: &ComputedStyleSnapshot,
     viewport: LayoutViewport,
 ) -> LayoutTree {
+    layout_normal_flow_with_inline_heights(boxes, styles, viewport, &BTreeMap::new())
+}
+
+/// Runs normal flow with measured inline formatting heights supplied by W20.
+#[must_use]
+pub fn layout_normal_flow_with_inline_heights(
+    boxes: &BoxTree,
+    styles: &ComputedStyleSnapshot,
+    viewport: LayoutViewport,
+    inline_heights: &BTreeMap<BoxId, CssPx>,
+) -> LayoutTree {
     let mut tree = layout_box_tree(boxes, styles, viewport);
-    flow_siblings(tree.roots_mut(), styles, CssPx(0), Some(viewport.height));
+    flow_siblings(
+        tree.roots_mut(),
+        styles,
+        CssPx(0),
+        Some(viewport.height),
+        inline_heights,
+    );
     tree
 }
 
@@ -26,6 +45,7 @@ fn flow_siblings(
     styles: &ComputedStyleSnapshot,
     start_y: CssPx,
     containing_height: Option<CssPx>,
+    inline_heights: &BTreeMap<BoxId, CssPx>,
 ) -> CssPx {
     let mut cursor = start_y;
     let mut previous_bottom = None;
@@ -34,7 +54,13 @@ fn flow_siblings(
             collapse_margins(bottom, sibling.margin.top)
         });
         let border_top = CssPx(cursor.0 + spacing.0);
-        flow_box(sibling, styles, border_top, containing_height);
+        flow_box(
+            sibling,
+            styles,
+            border_top,
+            containing_height,
+            inline_heights,
+        );
         let rect = sibling.border_box_rect();
         cursor = CssPx(rect.y.0 + rect.height.0);
         previous_bottom = Some(sibling.margin.bottom);
@@ -47,6 +73,7 @@ fn flow_box(
     styles: &ComputedStyleSnapshot,
     border_top: CssPx,
     containing_height: Option<CssPx>,
+    inline_heights: &BTreeMap<BoxId, CssPx>,
 ) {
     if node.kind == BoxKind::TextRun {
         node.content.y = border_top;
@@ -73,9 +100,18 @@ fn flow_box(
         .iter()
         .all(|child| child.kind.is_inline_level())
     {
-        flow_inline_children(node, styles, specified)
+        inline_heights
+            .get(&node.box_id)
+            .copied()
+            .unwrap_or_else(|| flow_inline_children(node, styles, specified, inline_heights))
     } else {
-        let end = flow_siblings(&mut node.children, styles, node.content.y, specified);
+        let end = flow_siblings(
+            &mut node.children,
+            styles,
+            node.content.y,
+            specified,
+            inline_heights,
+        );
         CssPx(end.0 - node.content.y.0).max_zero()
     };
 
@@ -96,10 +132,17 @@ fn flow_inline_children(
     node: &mut LayoutBox,
     styles: &ComputedStyleSnapshot,
     containing_height: Option<CssPx>,
+    inline_heights: &BTreeMap<BoxId, CssPx>,
 ) -> CssPx {
     let mut height = CssPx(0);
     for child in &mut node.children {
-        flow_box(child, styles, node.content.y, containing_height);
+        flow_box(
+            child,
+            styles,
+            node.content.y,
+            containing_height,
+            inline_heights,
+        );
         height = height.max(child.border_box_height());
     }
     height

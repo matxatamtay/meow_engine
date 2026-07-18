@@ -59,6 +59,7 @@ impl Builder<'_> {
             local_name: self.document.element_local_name(element),
             element_id: self.document.element_attribute(element, "id"),
             text: None,
+            raw_text: None,
             children,
         })
     }
@@ -67,14 +68,15 @@ impl Builder<'_> {
         match child {
             RenderChild::Element(element) => self.build_element(&element),
             RenderChild::Text { node, text } => {
-                let text = normalize_text(&text)?;
+                let normalized = normalize_text(&text)?;
                 Some(BoxNode {
                     id: self.allocate_id(),
                     kind: BoxKind::TextRun,
                     source: Some(node),
                     local_name: None,
                     element_id: None,
-                    text: Some(text),
+                    text: Some(normalized),
+                    raw_text: Some(text),
                     children: Vec::new(),
                 })
             }
@@ -113,6 +115,7 @@ impl Builder<'_> {
             local_name: None,
             element_id: None,
             text: None,
+            raw_text: None,
             children: std::mem::take(run),
         });
     }

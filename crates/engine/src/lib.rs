@@ -4,6 +4,7 @@ mod box_tree;
 mod encoding;
 mod error;
 mod fonts;
+mod fragments;
 mod layout;
 mod model;
 mod navigator;
@@ -19,9 +20,14 @@ pub use fonts::{
     FontCoverage, FontDatabase, FontFace, FontId, FontRequest, FontSlant, FontSource, FontSpan,
     Script, script_for,
 };
+pub use fragments::{
+    FragmentId, FragmentLayout, FragmentTree, GlyphFragment, InlinePaintStyle, LineFragment,
+    ParagraphFragment, TextDecorations, build_fragment_display_list, build_fragment_tree,
+    layout_fragment_tree,
+};
 pub use layout::{
     CssPx, EdgeSizes, LayoutBox, LayoutRect, LayoutTree, LayoutViewport, OverflowMetadata,
-    collapse_margins, layout_box_tree, layout_normal_flow,
+    collapse_margins, layout_box_tree, layout_normal_flow, layout_normal_flow_with_inline_heights,
 };
 pub use meow_css::{PropertyId, parse_selector_list};
 pub use meow_net::CancellationToken;

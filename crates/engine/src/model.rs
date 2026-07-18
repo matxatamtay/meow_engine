@@ -9,8 +9,10 @@ use meow_net::ResponseMetadata;
 use meow_url_policy::BrowserUrl;
 
 use crate::{
-    BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, LayoutTree, LayoutViewport,
-    build_box_tree, build_layout_display_list, compute_styles, layout_box_tree, layout_normal_flow,
+    BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, FontDatabase, FragmentLayout,
+    LayoutTree, LayoutViewport, build_box_tree, build_fragment_display_list,
+    build_layout_display_list, compute_styles, layout_box_tree, layout_fragment_tree,
+    layout_normal_flow,
 };
 
 /// Source that selected the committed document encoding.
@@ -214,6 +216,38 @@ impl DocumentState {
     #[must_use]
     pub fn dump_flow_layout(&self, viewport: LayoutViewport) -> String {
         self.flow_layout(viewport).dump()
+    }
+
+    /// Resolves W20 two-pass block layout and final inline fragments.
+    #[must_use]
+    pub fn fragment_layout(&self, viewport: LayoutViewport) -> FragmentLayout {
+        let styles = self.computed_styles();
+        let boxes = build_box_tree(&self.document, &styles);
+        let mut fonts = FontDatabase::deterministic();
+        layout_fragment_tree(&boxes, &styles, viewport, &mut fonts)
+    }
+
+    /// Produces a deterministic final fragment-tree dump.
+    #[must_use]
+    pub fn dump_fragments(&self, viewport: LayoutViewport) -> String {
+        self.fragment_layout(viewport).fragments.dump()
+    }
+
+    /// Builds W20 readable text, background, border, and decoration paint commands.
+    pub fn readable_display_list(
+        &self,
+        viewport: Viewport,
+    ) -> Result<DisplayList, DisplayListError> {
+        let styles = self.computed_styles();
+        let boxes = build_box_tree(&self.document, &styles);
+        let mut fonts = FontDatabase::deterministic();
+        let output = layout_fragment_tree(
+            &boxes,
+            &styles,
+            LayoutViewport::new(viewport.width, viewport.height),
+            &mut fonts,
+        );
+        build_fragment_display_list(&output.layout, &styles, &output.fragments, viewport)
     }
 
     /// Builds W16 background and border paint commands for the committed document.

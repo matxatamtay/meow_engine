@@ -47,10 +47,39 @@ pub fn parse_computed_value(property: PropertyId, source: &str) -> Option<Comput
             source,
             &["start", "end", "left", "right", "center", "justify"],
         ),
+        PropertyId::TextDecorationLine => parse_text_decoration_line(source),
         PropertyId::Visibility => parse_keyword(source, &["visible", "hidden", "collapse"]),
         PropertyId::FontFamily => {
             (!source.is_empty()).then(|| ComputedValue::Keyword(source.to_owned()))
         }
+    }
+}
+
+fn parse_text_decoration_line(source: &str) -> Option<ComputedValue> {
+    let mut underline = false;
+    let mut line_through = false;
+    let mut count = 0;
+    for token in source.split_whitespace() {
+        count += 1;
+        if token.eq_ignore_ascii_case("underline") && !underline {
+            underline = true;
+        } else if token.eq_ignore_ascii_case("line-through") && !line_through {
+            line_through = true;
+        } else if token.eq_ignore_ascii_case("none") && count == 1 {
+            return source
+                .split_whitespace()
+                .nth(1)
+                .is_none()
+                .then(|| ComputedValue::Keyword("none".to_owned()));
+        } else {
+            return None;
+        }
+    }
+    match (underline, line_through) {
+        (true, true) => Some(ComputedValue::Keyword("underline line-through".to_owned())),
+        (true, false) => Some(ComputedValue::Keyword("underline".to_owned())),
+        (false, true) => Some(ComputedValue::Keyword("line-through".to_owned())),
+        (false, false) => None,
     }
 }
 

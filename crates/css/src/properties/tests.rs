@@ -13,7 +13,7 @@ fn declaration(name: &str, value: &str) -> Declaration {
 
 #[test]
 fn registry_has_stable_names_initials_and_inheritance() {
-    assert_eq!(ALL_PROPERTIES.len(), 30);
+    assert_eq!(ALL_PROPERTIES.len(), 31);
     assert_eq!(W11_SNAPSHOT_PROPERTIES.len(), 13);
     assert_eq!(W12_SNAPSHOT_PROPERTIES.len(), 26);
     assert_eq!(PropertyId::Color.name(), "color");
@@ -63,4 +63,21 @@ fn ignores_unknown_empty_and_custom_declarations() {
     assert!(parse_property_declarations(&declaration("border-radius", "4px")).is_empty());
     assert!(parse_property_declarations(&declaration("color", "   ")).is_empty());
     assert!(parse_property_declarations(&declaration("--theme", "red")).is_empty());
+}
+
+#[test]
+fn text_decoration_line_parses_and_canonicalizes_subset() {
+    assert_eq!(
+        parse_computed_value(PropertyId::TextDecorationLine, "line-through underline")
+            .unwrap()
+            .to_css(),
+        "underline line-through"
+    );
+    assert_eq!(
+        parse_computed_value(PropertyId::TextDecorationLine, "none")
+            .unwrap()
+            .to_css(),
+        "none"
+    );
+    assert!(parse_computed_value(PropertyId::TextDecorationLine, "overline").is_none());
 }

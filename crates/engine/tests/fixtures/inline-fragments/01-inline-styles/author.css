@@ -1,0 +1,10 @@
+html, body, article, h1, p { display:block; margin:0; padding:0 }
+strong, em, span, del { display:inline }
+body { background-color:#eef2f7; color:#172033 }
+article { width:280px; margin:16px auto; padding:14px; border-width:2px; box-sizing:border-box; background-color:white }
+h1 { margin-bottom:14px; font-weight:bold; color:navy; text-decoration-line:underline }
+p { text-align:left }
+strong { font-weight:bold; color:maroon }
+em { font-style:italic; color:teal }
+span { color:red; text-decoration-line:underline }
+del { color:purple; text-decoration-line:line-through }

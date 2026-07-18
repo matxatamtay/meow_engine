@@ -1,0 +1,10 @@
+html, body, article, header, h1, p { display:block; margin:0; padding:0 }
+strong, em { display:inline }
+body { background-color:#18202d; color:#dce6f2 }
+article { width:250px; margin:18px auto; padding:14px; border-width:2px; box-sizing:border-box; background-color:#273447 }
+h1 { margin-bottom:8px; font-weight:bold; color:gold }
+.meta { margin-bottom:14px; color:silver; font-style:italic }
+p { margin-bottom:12px; text-align:justify }
+strong { font-weight:bold; color:aqua }
+em { font-style:italic; color:orange }
+.link { color:#7ee787; text-decoration-line:underline; text-align:center }

@@ -23,7 +23,7 @@ pub fn build_layout_display_list(
     Ok(list)
 }
 
-fn paint_box(
+pub(crate) fn paint_box(
     node: &LayoutBox,
     styles: &ComputedStyleSnapshot,
     viewport: Viewport,
@@ -93,7 +93,7 @@ fn paint_borders(
     )
 }
 
-fn fill_signed(
+pub(crate) fn fill_signed(
     list: &mut DisplayList,
     rect: LayoutRect,
     color: Rgba8,
@@ -122,7 +122,7 @@ fn fill_signed(
     )
 }
 
-fn color_property(value: &ComputedValue) -> Rgba8 {
+pub(crate) fn color_property(value: &ComputedValue) -> Rgba8 {
     let ComputedValue::Color(color) = value else {
         unreachable!("paint color properties have typed colors");
     };

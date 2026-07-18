@@ -45,6 +45,7 @@ pub struct BoxNode {
     pub local_name: Option<String>,
     pub element_id: Option<String>,
     pub text: Option<String>,
+    pub raw_text: Option<String>,
     pub children: Vec<BoxNode>,
 }
 
