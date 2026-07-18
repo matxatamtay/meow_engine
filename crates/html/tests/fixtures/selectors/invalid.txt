@@ -1,0 +1,20 @@
+# One invalid selector per non-comment line.
+,
+a,
+a >
+. class
+a::before
+a:hover
+a:not(.x)
+[a?=b]
+svg|circle
+[a=]
+[a=b q]
+a /deep/ b
+#
+[]
+a + + b
+a:nth-child()
+a:nth-child(2n of .x)
+a:has(b)
+a::first-line

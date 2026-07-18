@@ -1,6 +1,14 @@
-//! CSS syntax parsing, declaration recovery, and deterministic rule snapshots.
+//! CSS syntax parsing, selector semantics, declaration recovery, and deterministic snapshots.
+
+mod selectors;
 
 use std::fmt;
+
+pub use selectors::{
+    AnPlusB, AttributeCaseSensitivity, AttributeMatcher, AttributeSelector, Combinator,
+    ComplexSelector, CompoundSelector, PseudoClass, SelectorList, SelectorParseError,
+    SelectorSegment, SimpleSelector, Specificity, TypeSelector, parse_selector_list,
+};
 
 use cssparser::{
     AtRuleParser, CowRcStr, DeclarationParser, ParseError, Parser, ParserInput, ParserState,
@@ -115,6 +123,13 @@ pub struct StyleRule {
     pub source_order: usize,
     /// Rule start location.
     pub location: CssSourceLocation,
+}
+
+impl StyleRule {
+    /// Parses the raw W9 selector prelude into the W10 semantic selector model.
+    pub fn selector_list(&self) -> Result<SelectorList, SelectorParseError> {
+        parse_selector_list(&self.selectors)
+    }
 }
 
 /// A parsed property declaration without property-specific value validation.

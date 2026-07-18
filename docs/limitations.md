@@ -1,8 +1,9 @@
 # Current limitations
 
-MeowEngine currently covers the W1-W9 foundation, including reference rendering,
+MeowEngine currently covers the W1-W10 foundation, including reference rendering,
 HTTP(S) loading, HTML tree construction, top-level navigation, stylesheet discovery,
-and parsed CSS rule snapshots. It is not yet a complete web platform.
+parsed CSS rule snapshots, and a deterministic selector parser/matcher. It is not yet a
+complete web platform.
 
 - CI covers Linux through `ubuntu-latest` and Ubuntu 24.04; macOS and Windows
   are not supported by the W1 gate.
@@ -37,15 +38,21 @@ and parsed CSS rule snapshots. It is not yet a complete web platform.
 - Text, images, paths, clipping, transforms, filters, color management, and CSS paint
   semantics remain out of scope.
 
-## W9 CSS syntax and stylesheet limits
+## W9-W10 CSS and selector limits
 
-- CSS parsing currently retains raw selector preludes. Selector grammar validation and
-  matching belong to W10.
+- W9 stylesheet snapshots still retain raw selector preludes for deterministic compatibility.
+  W10 parses them on demand through `StyleRule::selector_list()`.
+- The W10 subset covers basic selectors, attribute operators, four combinators, specificity,
+  and structural child/of-type pseudo-classes. Dynamic pseudo-classes, pseudo-elements,
+  namespaces, logical selector functions, shadow DOM, and `nth-child(... of ...)` are not
+  implemented.
+- Selector matching is query-only. Cascade, style invalidation, computed values, inheritance,
+  and layout integration remain future work.
 - Top-level at-rules are retained as raw prelude/block syntax. `@import`, media evaluation,
   font loading, and nested semantic parsing are not active yet.
 - Linked stylesheets load sequentially in document order. Cache, preload, integrity,
   referrer, CORS, alternate/disabled sheet state, and render-blocking policy are not yet modeled.
 - CSS decoding honors an HTTP charset when present and otherwise uses UTF-8. The complete
   CSS encoding-detection algorithm remains future work.
-- The golden snapshot suite contains 100 curated fixtures. Selector grammar validation,
-  matching, and specificity remain W10 work.
+- The W9 golden snapshot suite contains 100 curated fixtures. The W10 internal selector
+  suite adds 70 valid matching cases and 19 invalid/unsupported syntax cases.

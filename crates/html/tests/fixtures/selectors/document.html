@@ -1,0 +1,34 @@
+<!doctype html>
+<html id="root" lang="en">
+  <head id="head">
+    <title id="doc-title">Selector fixtures</title>
+  </head>
+  <body id="body">
+    <main id="main" class="app shell" data-role="Main">
+      <section id="alpha" class="panel featured" data-kind="alpha beta" lang="en-US">
+        <h1 id="heading" class="heading title primary">Alpha</h1>
+        <p id="p1" class="item first" data-state="Open" data-tags="one two" data-prefix="foobar" data-suffix="barfoo" data-sub="abcXYZdef"></p>
+        <p id="p2" class="item" data-state="closed"><span id="badge" class="badge item"></span></p>
+        <p id="p3" class="item last" hidden></p>
+        <ul id="list">
+          <li id="li1" class="row odd">one</li>
+          <li id="li2" class="row even">two</li>
+          <li id="li3" class="row odd special"><span id="li3-child"></span></li>
+          <li id="li4" class="row even">four</li>
+        </ul>
+        <div id="empty"></div>
+        <div id="comment-only"><!-- comments do not affect :empty --></div>
+        <div id="space-only"> </div>
+        <div id="single"><em id="only-child"></em></div>
+        <div id="mixed-types"><i id="i1"></i><b id="b1"></b><i id="i2"></i><i id="i3"></i><b id="b2"></b></div>
+        <div id="123" class="café"></div>
+      </section>
+      <section id="beta" class="panel" data-kind="beta">
+        <h2 id="beta-heading" class="title"></h2>
+        <p id="beta-p1" class="item"></p>
+        <aside id="aside"><p id="deep" class="item"></p></aside>
+      </section>
+    </main>
+    <footer id="footer" class="shell"></footer>
+  </body>
+</html>

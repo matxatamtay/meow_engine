@@ -1,0 +1,71 @@
+# selector<TAB>expected element ids in document order; use - for no matches
+*	root,head,doc-title,body,main,alpha,heading,p1,p2,badge,p3,list,li1,li2,li3,li3-child,li4,empty,comment-only,space-only,single,only-child,mixed-types,i1,b1,i2,i3,b2,123,beta,beta-heading,beta-p1,aside,deep,footer
+section	alpha,beta
+SECTION	alpha,beta
+p	p1,p2,p3,beta-p1,deep
+*.panel	alpha,beta
+.panel	alpha,beta
+.item	p1,p2,badge,p3,beta-p1,deep
+.odd.special	li3
+#badge	badge
+section.panel.featured	alpha
+p#p1.item.first	p1
+[hidden]	p3
+[data-state]	p1,p2
+[DATA-STATE]	p1,p2
+[data-state=Open]	p1
+[data-state=open i]	p1
+[data-state=open s]	-
+[data-tags~=two]	p1
+[lang|=en]	root,alpha
+[data-prefix^=foo]	p1
+[data-suffix$=foo]	p1
+[data-sub*=XYZ]	p1
+[data-kind="ALPHA BETA" i]	alpha
+main > section	alpha,beta
+main section	alpha,beta
+section p	p1,p2,p3,beta-p1,deep
+section > p	p1,p2,p3,beta-p1
+p + p	p2,p3
+p ~ p	p2,p3
+h1 + p	p1
+h1 ~ ul	list
+section + section	beta
+section ~ section	beta
+body > footer	footer
+main + footer	footer
+main ~ footer	footer
+#p2 > span.badge	badge
+#alpha .item	p1,p2,badge,p3
+:root	root
+#empty:empty	empty
+#comment-only:empty	comment-only
+#space-only:empty	-
+.row:first-child	li1
+.row:last-child	li4
+#only-child:only-child	only-child
+.row:nth-child(2)	li2
+.row:nth-child(odd)	li1,li3
+.row:nth-child(2n)	li2,li4
+.row:nth-child(-n+2)	li1,li2
+.row:nth-last-child(1)	li4
+.row:nth-last-child(2)	li3
+#i1:first-of-type	i1
+#i3:last-of-type	i3
+#b1:first-of-type	b1
+#b2:last-of-type	b2
+#only-child:only-of-type	only-child
+#i2:nth-of-type(2)	i2
+#i2:nth-last-of-type(2)	i2
+#b1:nth-of-type(1)	b1
+#b1:nth-last-of-type(2)	b1
+#p1, #badge, #p1	p1,badge
+.heading, .title	heading,beta-heading
+.caf\e9	123
+#\31 23	123
+#main > #alpha > #list > .row:nth-child(3) > span	li3-child
+#beta > aside #deep	deep
+#alpha > :first-child	heading
+#alpha > :last-child	123
+#mixed-types > i ~ b	b1,b2
+#mixed-types > i + i	i3

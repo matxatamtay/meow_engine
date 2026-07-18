@@ -12,3 +12,4 @@ workspace = true
 [dependencies]
 encoding_rs.workspace = true
 html5ever.workspace = true
+meow-css = { path = "../css" }

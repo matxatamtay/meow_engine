@@ -1,5 +1,7 @@
 //! Streaming HTML decoding and an html5ever `TreeSink` backed by a generational arena.
 
+mod selectors;
+
 use std::{
     borrow::Cow,
     cell::RefCell,
