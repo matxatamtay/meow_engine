@@ -1,5 +1,6 @@
 //! Top-level frame and navigation orchestration for MeowEngine.
 
+mod box_tree;
 mod encoding;
 mod error;
 mod model;
@@ -8,6 +9,7 @@ mod style;
 
 use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene};
 
+pub use box_tree::{BoxId, BoxKind, BoxNode, BoxTree, build_box_tree};
 pub use error::NavigationError;
 pub use meow_css::PropertyId;
 pub use meow_net::CancellationToken;

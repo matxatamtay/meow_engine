@@ -1,0 +1,13 @@
+#box-tree
+principal-block box=0 source=2 name="html"
+  anonymous-block box=11
+    principal-inline box=1 source=3 name="head"
+  principal-block box=2 source=4 name="body"
+    principal-block box=3 source=5 name="main" id="root"
+      anonymous-block box=9
+        text-run box=4 source=6 text="before"
+        principal-inline box=5 source=7 name="span" id="inline"
+          text-run box=6 source=8 text="inside"
+      principal-block box=7 source=9 name="section" id="block"
+      anonymous-block box=10
+        text-run box=8 source=10 text="after"

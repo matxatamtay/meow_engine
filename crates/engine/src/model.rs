@@ -7,7 +7,10 @@ use meow_html::{Document, NodeId};
 use meow_net::ResponseMetadata;
 use meow_url_policy::BrowserUrl;
 
-use crate::{CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, compute_styles};
+use crate::{
+    BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, build_box_tree,
+    compute_styles,
+};
 
 /// Source that selected the committed document encoding.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -169,5 +172,18 @@ impl DocumentState {
     #[must_use]
     pub fn dump_typed_computed_styles(&self) -> String {
         self.computed_styles().dump_typed()
+    }
+
+    /// Generates the W13 formatting box tree from the current DOM and styles.
+    #[must_use]
+    pub fn box_tree(&self) -> BoxTree {
+        let styles = self.computed_styles();
+        build_box_tree(&self.document, &styles)
+    }
+
+    /// Produces a deterministic box-tree dump separate from the DOM dump.
+    #[must_use]
+    pub fn dump_box_tree(&self) -> String {
+        self.box_tree().dump()
     }
 }

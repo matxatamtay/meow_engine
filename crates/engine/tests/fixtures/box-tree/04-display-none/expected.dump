@@ -1,0 +1,7 @@
+#box-tree
+principal-block box=0 source=2 name="html"
+  anonymous-block box=5
+    principal-inline box=1 source=3 name="head"
+  principal-block box=2 source=4 name="body"
+    principal-block box=3 source=5 name="main" id="root"
+      principal-block box=4 source=6 name="section" id="visible"
