@@ -6,6 +6,7 @@ mod error;
 mod layout;
 mod model;
 mod navigator;
+mod paint;
 mod style;
 
 use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene};
@@ -24,6 +25,7 @@ pub use model::{
     StylesheetSource,
 };
 pub use navigator::Navigator;
+pub use paint::build_layout_display_list;
 pub use style::{
     CascadeOrigin, CascadeStylesheet, ComputedElementStyle, ComputedStyle, ComputedStyleSnapshot,
     DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, StyleEngine, ValueDiagnostic,

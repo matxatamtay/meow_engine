@@ -124,11 +124,33 @@ impl Renderer for ReferenceRenderer {
             "rasterizing CPU display list"
         );
         let mut framebuffer = Framebuffer::new(viewport)?;
+        let viewport_clip = Rectangle::new(0, 0, viewport.width, viewport.height);
+        let mut clips = vec![Some(viewport_clip)];
         for command in display_list.commands() {
             match *command {
                 DisplayCommand::Clear(color) => framebuffer.pixmap.fill(to_tiny_color(color)),
                 DisplayCommand::FillRectangle { rectangle, color } => {
-                    fill_tiny_rectangle(&mut framebuffer.pixmap, rectangle, color)?;
+                    if let Some(rectangle) = clips
+                        .last()
+                        .copied()
+                        .flatten()
+                        .and_then(|clip| rectangle.intersection(clip))
+                    {
+                        fill_tiny_rectangle(&mut framebuffer.pixmap, rectangle, color)?;
+                    }
+                }
+                DisplayCommand::PushClip(rectangle) => {
+                    let clip = clips
+                        .last()
+                        .copied()
+                        .flatten()
+                        .and_then(|current| current.intersection(rectangle));
+                    clips.push(clip);
+                }
+                DisplayCommand::PopClip => {
+                    if clips.len() > 1 {
+                        clips.pop();
+                    }
                 }
             }
         }
@@ -275,6 +297,8 @@ fn lower_display_list(
     scene.reset();
     let mut base_color = VelloColor::from_rgb8(0, 0, 0);
     let mut has_base_color = false;
+    let viewport_clip = Rectangle::new(0, 0, viewport.width, viewport.height);
+    let mut clips = vec![Some(viewport_clip)];
 
     for command in display_list.commands() {
         match *command {
@@ -290,7 +314,27 @@ fn lower_display_list(
                 );
             }
             DisplayCommand::FillRectangle { rectangle, color } => {
-                fill_vello_rectangle(scene, rectangle, color);
+                if let Some(rectangle) = clips
+                    .last()
+                    .copied()
+                    .flatten()
+                    .and_then(|clip| rectangle.intersection(clip))
+                {
+                    fill_vello_rectangle(scene, rectangle, color);
+                }
+            }
+            DisplayCommand::PushClip(rectangle) => {
+                let clip = clips
+                    .last()
+                    .copied()
+                    .flatten()
+                    .and_then(|current| current.intersection(rectangle));
+                clips.push(clip);
+            }
+            DisplayCommand::PopClip => {
+                if clips.len() > 1 {
+                    clips.pop();
+                }
             }
         }
     }
@@ -329,7 +373,7 @@ fn fill_tiny_rectangle(
     .ok_or(RenderError::InvalidRectangle(rectangle))?;
     let mut paint = Paint::default();
     paint.set_color(to_tiny_color(color));
-    paint.blend_mode = BlendMode::Source;
+    paint.blend_mode = BlendMode::SourceOver;
     paint.anti_alias = false;
     pixmap.fill_rect(rect, &paint, Transform::identity(), None);
     Ok(())
@@ -395,6 +439,21 @@ mod tests {
         assert_eq!(framebuffer.pixel(0, 0), Some([10, 20, 30, 255]));
         assert_eq!(framebuffer.pixel(1, 1), Some([200, 100, 50, 255]));
         assert_eq!(framebuffer.pixel(3, 3), Some([10, 20, 30, 255]));
+    }
+
+    #[test]
+    fn clip_stack_intersects_nested_fills() {
+        let viewport = Viewport::new(5, 5).unwrap();
+        let mut list = DisplayList::new();
+        list.clear(Rgba8::rgb(0, 0, 0));
+        list.push_clip(Rectangle::new(1, 1, 2, 2)).unwrap();
+        list.fill_rectangle(Rectangle::new(0, 0, 5, 5), Rgba8::rgb(255, 0, 0))
+            .unwrap();
+        list.pop_clip().unwrap();
+        let framebuffer = ReferenceRenderer::new().render(viewport, &list).unwrap();
+        assert_eq!(framebuffer.pixel(0, 0), Some([0, 0, 0, 255]));
+        assert_eq!(framebuffer.pixel(1, 1), Some([255, 0, 0, 255]));
+        assert_eq!(framebuffer.pixel(3, 3), Some([0, 0, 0, 255]));
     }
 
     #[test]

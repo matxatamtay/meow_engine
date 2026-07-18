@@ -1326,6 +1326,7 @@ dependencies = [
  "meow-display-list",
  "meow-html",
  "meow-net",
+ "meow-renderer",
  "meow-url-policy",
  "tokio",
  "tracing",

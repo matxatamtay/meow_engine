@@ -116,6 +116,22 @@ impl Rectangle {
             height,
         }
     }
+
+    /// Returns the non-empty intersection of two rectangles.
+    #[must_use]
+    pub fn intersection(self, other: Self) -> Option<Self> {
+        let x0 = self.x.max(other.x);
+        let y0 = self.y.max(other.y);
+        let x1 = self
+            .x
+            .saturating_add(self.width)
+            .min(other.x.saturating_add(other.width));
+        let y1 = self
+            .y
+            .saturating_add(self.height)
+            .min(other.y.saturating_add(other.height));
+        (x1 > x0 && y1 > y0).then(|| Self::new(x0, y0, x1 - x0, y1 - y0))
+    }
 }
 
 /// One backend-neutral paint operation.
@@ -130,12 +146,17 @@ pub enum DisplayCommand {
         /// Fill color.
         color: Rgba8,
     },
+    /// Intersects subsequent paint with one rectangle.
+    PushClip(Rectangle),
+    /// Restores the previous clip.
+    PopClip,
 }
 
 /// Ordered paint commands for one frame.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct DisplayList {
     commands: Vec<DisplayCommand>,
+    clip_depth: usize,
 }
 
 impl DisplayList {
@@ -144,6 +165,7 @@ impl DisplayList {
     pub const fn new() -> Self {
         Self {
             commands: Vec::new(),
+            clip_depth: 0,
         }
     }
 
@@ -163,6 +185,26 @@ impl DisplayList {
         }
         self.commands
             .push(DisplayCommand::FillRectangle { rectangle, color });
+        Ok(())
+    }
+
+    /// Pushes a validated rectangular clip.
+    pub fn push_clip(&mut self, rectangle: Rectangle) -> Result<(), DisplayListError> {
+        if rectangle.width == 0 || rectangle.height == 0 {
+            return Err(DisplayListError::InvalidRectangle(rectangle));
+        }
+        self.commands.push(DisplayCommand::PushClip(rectangle));
+        self.clip_depth += 1;
+        Ok(())
+    }
+
+    /// Pops the latest clip.
+    pub fn pop_clip(&mut self) -> Result<(), DisplayListError> {
+        if self.clip_depth == 0 {
+            return Err(DisplayListError::ClipStackUnderflow);
+        }
+        self.clip_depth -= 1;
+        self.commands.push(DisplayCommand::PopClip);
         Ok(())
     }
 
@@ -242,6 +284,8 @@ pub enum DisplayListError {
     ReferenceSceneTooSmall { width: u32, height: u32 },
     /// A rectangle has zero width or height.
     InvalidRectangle(Rectangle),
+    /// A clip pop had no matching push.
+    ClipStackUnderflow,
 }
 
 impl fmt::Display for DisplayListError {
@@ -260,6 +304,7 @@ impl fmt::Display for DisplayListError {
                 "invalid rectangle at ({}, {}) with size {}x{}",
                 rectangle.x, rectangle.y, rectangle.width, rectangle.height
             ),
+            Self::ClipStackUnderflow => formatter.write_str("display-list clip stack underflow"),
         }
     }
 }
@@ -299,6 +344,22 @@ mod tests {
         assert!(matches!(
             list.fill_rectangle(Rectangle::new(0, 0, 0, 5), Rgba8::rgb(0, 0, 0)),
             Err(DisplayListError::InvalidRectangle(_))
+        ));
+        assert_eq!(list.pop_clip(), Err(DisplayListError::ClipStackUnderflow));
+    }
+
+    #[test]
+    fn clip_commands_are_balanced_and_rectangles_intersect() {
+        let mut list = DisplayList::new();
+        list.push_clip(Rectangle::new(2, 2, 4, 4)).unwrap();
+        list.pop_clip().unwrap();
+        assert_eq!(
+            Rectangle::new(0, 0, 4, 4).intersection(Rectangle::new(2, 1, 4, 2)),
+            Some(Rectangle::new(2, 1, 2, 2))
+        );
+        assert!(matches!(
+            list.commands(),
+            [DisplayCommand::PushClip(_), DisplayCommand::PopClip]
         ));
     }
 }

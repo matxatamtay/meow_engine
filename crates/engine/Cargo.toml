@@ -19,4 +19,5 @@ meow-url-policy = { path = "../url-policy" }
 tracing.workspace = true
 
 [dev-dependencies]
+meow-renderer = { path = "../renderer" }
 tokio.workspace = true

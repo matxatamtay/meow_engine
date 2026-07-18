@@ -3,13 +3,14 @@
 use std::fmt::Write as _;
 
 use meow_css::Stylesheet;
+use meow_display_list::{DisplayList, DisplayListError, Viewport};
 use meow_html::{Document, NodeId};
 use meow_net::ResponseMetadata;
 use meow_url_policy::BrowserUrl;
 
 use crate::{
     BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, LayoutTree, LayoutViewport,
-    build_box_tree, compute_styles, layout_box_tree, layout_normal_flow,
+    build_box_tree, build_layout_display_list, compute_styles, layout_box_tree, layout_normal_flow,
 };
 
 /// Source that selected the committed document encoding.
@@ -213,5 +214,17 @@ impl DocumentState {
     #[must_use]
     pub fn dump_flow_layout(&self, viewport: LayoutViewport) -> String {
         self.flow_layout(viewport).dump()
+    }
+
+    /// Builds W16 background and border paint commands for the committed document.
+    pub fn display_list(&self, viewport: Viewport) -> Result<DisplayList, DisplayListError> {
+        let styles = self.computed_styles();
+        let boxes = build_box_tree(&self.document, &styles);
+        let layout = layout_normal_flow(
+            &boxes,
+            &styles,
+            LayoutViewport::new(viewport.width, viewport.height),
+        );
+        build_layout_display_list(&layout, &styles, viewport)
     }
 }
