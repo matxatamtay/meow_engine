@@ -16,6 +16,7 @@ publish = false
 
 [workspace.dependencies]
 softbuffer = { version = "0.4.8", default-features = false, features = ["wayland", "wayland-dlopen", "x11", "x11-dlopen"] }
+tiny-skia = { version = "0.11.4", default-features = false, features = ["png-format", "simd"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 winit = "0.30.13"
