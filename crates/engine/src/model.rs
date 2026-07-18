@@ -7,6 +7,8 @@ use meow_html::{Document, NodeId};
 use meow_net::ResponseMetadata;
 use meow_url_policy::BrowserUrl;
 
+use crate::{CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, compute_styles};
+
 /// Source that selected the committed document encoding.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CharsetSource {
@@ -20,6 +22,18 @@ pub enum CharsetSource {
     Meta,
     /// The HTML fallback encoding.
     Default,
+}
+
+fn media_is_active(media: Option<&str>) -> bool {
+    let Some(media) = media else {
+        return true;
+    };
+    let media = media.trim();
+    media.is_empty()
+        || media
+            .split(',')
+            .map(str::trim)
+            .any(|query| query.eq_ignore_ascii_case("all") || query.eq_ignore_ascii_case("screen"))
 }
 
 /// One committed session-history entry.
@@ -131,5 +145,23 @@ impl DocumentState {
             .expect("writing to String cannot fail");
         }
         output
+    }
+
+    /// Computes author stylesheets against the committed document.
+    #[must_use]
+    pub fn computed_styles(&self) -> ComputedStyleSnapshot {
+        let stylesheets = self
+            .stylesheets
+            .iter()
+            .filter(|entry| media_is_active(entry.media.as_deref()))
+            .map(|entry| CascadeStylesheet::new(CascadeOrigin::Author, &entry.stylesheet))
+            .collect::<Vec<_>>();
+        compute_styles(&self.document, &stylesheets)
+    }
+
+    /// Produces the deterministic W11 computed-style snapshot.
+    #[must_use]
+    pub fn dump_computed_styles(&self) -> String {
+        self.computed_styles().dump()
     }
 }

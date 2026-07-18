@@ -1,9 +1,14 @@
 //! CSS syntax parsing, selector semantics, declaration recovery, and deterministic snapshots.
 
+mod properties;
 mod selectors;
 
 use std::fmt;
 
+pub use properties::{
+    ALL_PROPERTIES, CssWideKeyword, PropertyDeclaration, PropertyId, SpecifiedValue,
+    parse_property_declaration,
+};
 pub use selectors::{
     AnPlusB, AttributeCaseSensitivity, AttributeMatcher, AttributeSelector, Combinator,
     ComplexSelector, CompoundSelector, PseudoClass, SelectorList, SelectorParseError,

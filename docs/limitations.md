@@ -1,9 +1,9 @@
 # Current limitations
 
-MeowEngine currently covers the W1-W10 foundation, including reference rendering,
+MeowEngine currently covers the W1-W11 foundation, including reference rendering,
 HTTP(S) loading, HTML tree construction, top-level navigation, stylesheet discovery,
-parsed CSS rule snapshots, and a deterministic selector parser/matcher. It is not yet a
-complete web platform.
+parsed CSS rule snapshots, deterministic selector matching, and a bounded cascade with
+computed-style snapshots. It is not yet a complete web platform.
 
 - CI covers Linux through `ubuntu-latest` and Ubuntu 24.04; macOS and Windows
   are not supported by the W1 gate.
@@ -38,7 +38,7 @@ complete web platform.
 - Text, images, paths, clipping, transforms, filters, color management, and CSS paint
   semantics remain out of scope.
 
-## W9-W10 CSS and selector limits
+## W9-W11 CSS, selector, and cascade limits
 
 - W9 stylesheet snapshots still retain raw selector preludes for deterministic compatibility.
   W10 parses them on demand through `StyleRule::selector_list()`.
@@ -46,13 +46,20 @@ complete web platform.
   and structural child/of-type pseudo-classes. Dynamic pseudo-classes, pseudo-elements,
   namespaces, logical selector functions, shadow DOM, and `nth-child(... of ...)` are not
   implemented.
-- Selector matching is query-only. Cascade, style invalidation, computed values, inheritance,
-  and layout integration remain future work.
-- Top-level at-rules are retained as raw prelude/block syntax. `@import`, media evaluation,
-  font loading, and nested semantic parsing are not active yet.
+- W11 computes 13 longhand properties with origin, importance, specificity, source order,
+  inheritance, and `inherit`/`initial`/`unset`. Shorthands, custom properties, full value
+  validation, `revert`, cascade layers, animations, transitions, style attributes, and
+  presentation hints remain future work.
+- Computed values retain non-keyword declaration text. Unit conversion, percentage resolution,
+  `currentColor`, font metrics, used values, style invalidation, and layout integration remain
+  future work.
+- Top-level at-rules are retained as raw prelude/block syntax. `DocumentState` activates only
+  empty, `all`, or `screen` media attributes; full media-query evaluation, `@import`, font
+  loading, and nested semantic parsing are not active yet.
 - Linked stylesheets load sequentially in document order. Cache, preload, integrity,
   referrer, CORS, alternate/disabled sheet state, and render-blocking policy are not yet modeled.
 - CSS decoding honors an HTTP charset when present and otherwise uses UTF-8. The complete
   CSS encoding-detection algorithm remains future work.
-- The W9 golden snapshot suite contains 100 curated fixtures. The W10 internal selector
-  suite adds 70 valid matching cases and 19 invalid/unsupported syntax cases.
+- The W9 golden snapshot suite contains 100 curated fixtures. The W10 selector suite adds
+  70 valid matching cases and 19 invalid/unsupported syntax cases. W11 adds two complete
+  computed-style snapshot fixtures plus focused cascade and inheritance unit tests.

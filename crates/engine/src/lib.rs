@@ -4,10 +4,12 @@ mod encoding;
 mod error;
 mod model;
 mod navigator;
+mod style;
 
 use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene};
 
 pub use error::NavigationError;
+pub use meow_css::PropertyId;
 pub use meow_net::CancellationToken;
 pub use meow_url_policy::BrowserUrl;
 pub use model::{
@@ -15,6 +17,10 @@ pub use model::{
     StylesheetSource,
 };
 pub use navigator::Navigator;
+pub use style::{
+    CascadeOrigin, CascadeStylesheet, ComputedElementStyle, ComputedStyle, ComputedStyleSnapshot,
+    StyleDiagnostic, compute_styles,
+};
 
 /// Human-readable engine name used by first-party applications.
 pub const ENGINE_NAME: &str = "MeowEngine";

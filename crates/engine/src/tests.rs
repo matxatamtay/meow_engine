@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 
+use meow_css::{PropertyId, parse_selector_list};
 use meow_display_list::Viewport;
 use meow_net::NetError;
 use tokio::{
@@ -89,6 +90,19 @@ async fn loads_inline_and_external_stylesheets_in_document_order() {
     assert!(dump.contains(r#"selectors="main""#));
     assert!(dump.contains(r#"selectors=".card""#));
     assert!(dump.contains("important=true"));
+
+    let main = state
+        .document
+        .query_selector(&parse_selector_list("main.card").unwrap())
+        .expect("styled document should contain main.card");
+    let computed = state.computed_styles();
+    let style = computed.style_for(main.id()).unwrap();
+    assert_eq!(style.get(PropertyId::Color), "red");
+    assert_eq!(
+        style.get(PropertyId::Display),
+        "inline",
+        "print stylesheet must not apply to the default screen medium"
+    );
 }
 
 #[tokio::test]

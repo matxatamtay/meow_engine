@@ -1,0 +1,6 @@
+main { color: green; }
+#app { color: crimson; display: flex; width: 30px; }
+.card { color: gold; }
+#child { color: inherit; }
+#leaf { color: blue !important; opacity: .5; }
+main:hover { height: 1px; }

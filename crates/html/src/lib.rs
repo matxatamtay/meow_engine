@@ -4,6 +4,7 @@ mod dom;
 mod parser;
 mod selectors;
 mod stylesheets;
+mod traversal;
 mod tree_sink;
 
 pub use dom::{Document, DocumentQuirksMode, NodeHandle, NodeId};

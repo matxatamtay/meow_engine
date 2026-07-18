@@ -1,0 +1,23 @@
+#parent {
+  color: maroon;
+  font-size: 20px;
+  visibility: hidden;
+  width: 100px;
+  display: block;
+}
+#child {
+  color: unset;
+  font-size: initial;
+  visibility: inherit;
+  width: inherit;
+  display: unset;
+  height: initial;
+}
+#leaf {
+  color: initial;
+  font-size: unset;
+  visibility: unset;
+  width: unset;
+  opacity: unset;
+  background-color: unset;
+}
