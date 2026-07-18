@@ -1,0 +1,75 @@
+#paragraph width=120 height=96 direction=Ltr align=Start text="MeowEngine wraps Vietnamese text tiếng Việt deterministically."
+line=0 y=0 baseline=12 available=120 used=80 offset=0 text="MeowEngine"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=80
+    glyph char='M' cluster=0 x=0 baseline=12 advance=8
+    glyph char='e' cluster=1 x=8 baseline=12 advance=8
+    glyph char='o' cluster=2 x=16 baseline=12 advance=8
+    glyph char='w' cluster=3 x=24 baseline=12 advance=8
+    glyph char='E' cluster=4 x=32 baseline=12 advance=8
+    glyph char='n' cluster=5 x=40 baseline=12 advance=8
+    glyph char='g' cluster=6 x=48 baseline=12 advance=8
+    glyph char='i' cluster=7 x=56 baseline=12 advance=8
+    glyph char='n' cluster=8 x=64 baseline=12 advance=8
+    glyph char='e' cluster=9 x=72 baseline=12 advance=8
+line=1 y=16 baseline=28 available=120 used=40 offset=0 text="wraps"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=40
+    glyph char='w' cluster=0 x=0 baseline=28 advance=8
+    glyph char='r' cluster=1 x=8 baseline=28 advance=8
+    glyph char='a' cluster=2 x=16 baseline=28 advance=8
+    glyph char='p' cluster=3 x=24 baseline=28 advance=8
+    glyph char='s' cluster=4 x=32 baseline=28 advance=8
+line=2 y=32 baseline=44 available=120 used=116 offset=0 text="Vietnamese text"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=116
+    glyph char='V' cluster=0 x=0 baseline=44 advance=8
+    glyph char='i' cluster=1 x=8 baseline=44 advance=8
+    glyph char='e' cluster=2 x=16 baseline=44 advance=8
+    glyph char='t' cluster=3 x=24 baseline=44 advance=8
+    glyph char='n' cluster=4 x=32 baseline=44 advance=8
+    glyph char='a' cluster=5 x=40 baseline=44 advance=8
+    glyph char='m' cluster=6 x=48 baseline=44 advance=8
+    glyph char='e' cluster=7 x=56 baseline=44 advance=8
+    glyph char='s' cluster=8 x=64 baseline=44 advance=8
+    glyph char='e' cluster=9 x=72 baseline=44 advance=8
+    glyph char=' ' cluster=10 x=80 baseline=44 advance=4
+    glyph char='t' cluster=11 x=84 baseline=44 advance=8
+    glyph char='e' cluster=12 x=92 baseline=44 advance=8
+    glyph char='x' cluster=13 x=100 baseline=44 advance=8
+    glyph char='t' cluster=14 x=108 baseline=44 advance=8
+line=3 y=48 baseline=60 available=120 used=76 offset=0 text="tiếng Việt"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=16
+    glyph char='t' cluster=0 x=0 baseline=60 advance=8
+    glyph char='i' cluster=1 x=8 baseline=60 advance=8
+  run font=1 family="Meow Sans Vietnamese" script=Latin direction=Ltr x=16 width=8
+    glyph char='ế' cluster=2 x=16 baseline=60 advance=8
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=24 width=36
+    glyph char='n' cluster=5 x=24 baseline=60 advance=8
+    glyph char='g' cluster=6 x=32 baseline=60 advance=8
+    glyph char=' ' cluster=7 x=40 baseline=60 advance=4
+    glyph char='V' cluster=8 x=44 baseline=60 advance=8
+    glyph char='i' cluster=9 x=52 baseline=60 advance=8
+  run font=1 family="Meow Sans Vietnamese" script=Latin direction=Ltr x=60 width=8
+    glyph char='ệ' cluster=10 x=60 baseline=60 advance=8
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=68 width=8
+    glyph char='t' cluster=13 x=68 baseline=60 advance=8
+line=4 y=64 baseline=76 available=120 used=120 offset=0 text="deterministical"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=120
+    glyph char='d' cluster=0 x=0 baseline=76 advance=8
+    glyph char='e' cluster=1 x=8 baseline=76 advance=8
+    glyph char='t' cluster=2 x=16 baseline=76 advance=8
+    glyph char='e' cluster=3 x=24 baseline=76 advance=8
+    glyph char='r' cluster=4 x=32 baseline=76 advance=8
+    glyph char='m' cluster=5 x=40 baseline=76 advance=8
+    glyph char='i' cluster=6 x=48 baseline=76 advance=8
+    glyph char='n' cluster=7 x=56 baseline=76 advance=8
+    glyph char='i' cluster=8 x=64 baseline=76 advance=8
+    glyph char='s' cluster=9 x=72 baseline=76 advance=8
+    glyph char='t' cluster=10 x=80 baseline=76 advance=8
+    glyph char='i' cluster=11 x=88 baseline=76 advance=8
+    glyph char='c' cluster=12 x=96 baseline=76 advance=8
+    glyph char='a' cluster=13 x=104 baseline=76 advance=8
+    glyph char='l' cluster=14 x=112 baseline=76 advance=8
+line=5 y=80 baseline=92 available=120 used=21 offset=0 text="ly."
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=21
+    glyph char='l' cluster=0 x=0 baseline=92 advance=8
+    glyph char='y' cluster=1 x=8 baseline=92 advance=8
+    glyph char='.' cluster=2 x=16 baseline=92 advance=5

@@ -37,7 +37,10 @@ pub use style::{
     DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, StyleEngine, ValueDiagnostic,
     compute_styles,
 };
-pub use text::{ShapedGlyph, ShapedRun, ShapedText, TextDirection, is_combining_mark, shape_text};
+pub use text::{
+    LineBox, LineRun, ParagraphLayout, PositionedGlyph, ShapedGlyph, ShapedRun, ShapedText,
+    TextAlign, TextDirection, collapse_whitespace, is_combining_mark, layout_paragraph, shape_text,
+};
 
 /// Human-readable engine name used by first-party applications.
 pub const ENGINE_NAME: &str = "MeowEngine";

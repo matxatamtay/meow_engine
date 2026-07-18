@@ -1,0 +1,77 @@
+#paragraph width=136 height=80 direction=Ltr align=Justify text="Justified text distributes remaining space across each non final line."
+line=0 y=0 baseline=12 available=136 used=136 offset=0 text="Justified text"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=136
+    glyph char='J' cluster=0 x=0 baseline=12 advance=8
+    glyph char='u' cluster=1 x=8 baseline=12 advance=8
+    glyph char='s' cluster=2 x=16 baseline=12 advance=8
+    glyph char='t' cluster=3 x=24 baseline=12 advance=8
+    glyph char='i' cluster=4 x=32 baseline=12 advance=8
+    glyph char='f' cluster=5 x=40 baseline=12 advance=8
+    glyph char='i' cluster=6 x=48 baseline=12 advance=8
+    glyph char='e' cluster=7 x=56 baseline=12 advance=8
+    glyph char='d' cluster=8 x=64 baseline=12 advance=8
+    glyph char=' ' cluster=9 x=72 baseline=12 advance=4
+    glyph char='t' cluster=10 x=104 baseline=12 advance=8
+    glyph char='e' cluster=11 x=112 baseline=12 advance=8
+    glyph char='x' cluster=12 x=120 baseline=12 advance=8
+    glyph char='t' cluster=13 x=128 baseline=12 advance=8
+line=1 y=16 baseline=28 available=136 used=88 offset=0 text="distributes"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=88
+    glyph char='d' cluster=0 x=0 baseline=28 advance=8
+    glyph char='i' cluster=1 x=8 baseline=28 advance=8
+    glyph char='s' cluster=2 x=16 baseline=28 advance=8
+    glyph char='t' cluster=3 x=24 baseline=28 advance=8
+    glyph char='r' cluster=4 x=32 baseline=28 advance=8
+    glyph char='i' cluster=5 x=40 baseline=28 advance=8
+    glyph char='b' cluster=6 x=48 baseline=28 advance=8
+    glyph char='u' cluster=7 x=56 baseline=28 advance=8
+    glyph char='t' cluster=8 x=64 baseline=28 advance=8
+    glyph char='e' cluster=9 x=72 baseline=28 advance=8
+    glyph char='s' cluster=10 x=80 baseline=28 advance=8
+line=2 y=32 baseline=44 available=136 used=136 offset=0 text="remaining space"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=136
+    glyph char='r' cluster=0 x=0 baseline=44 advance=8
+    glyph char='e' cluster=1 x=8 baseline=44 advance=8
+    glyph char='m' cluster=2 x=16 baseline=44 advance=8
+    glyph char='a' cluster=3 x=24 baseline=44 advance=8
+    glyph char='i' cluster=4 x=32 baseline=44 advance=8
+    glyph char='n' cluster=5 x=40 baseline=44 advance=8
+    glyph char='i' cluster=6 x=48 baseline=44 advance=8
+    glyph char='n' cluster=7 x=56 baseline=44 advance=8
+    glyph char='g' cluster=8 x=64 baseline=44 advance=8
+    glyph char=' ' cluster=9 x=72 baseline=44 advance=4
+    glyph char='s' cluster=10 x=96 baseline=44 advance=8
+    glyph char='p' cluster=11 x=104 baseline=44 advance=8
+    glyph char='a' cluster=12 x=112 baseline=44 advance=8
+    glyph char='c' cluster=13 x=120 baseline=44 advance=8
+    glyph char='e' cluster=14 x=128 baseline=44 advance=8
+line=3 y=48 baseline=60 available=136 used=136 offset=0 text="across each non"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=136
+    glyph char='a' cluster=0 x=0 baseline=60 advance=8
+    glyph char='c' cluster=1 x=8 baseline=60 advance=8
+    glyph char='r' cluster=2 x=16 baseline=60 advance=8
+    glyph char='o' cluster=3 x=24 baseline=60 advance=8
+    glyph char='s' cluster=4 x=32 baseline=60 advance=8
+    glyph char='s' cluster=5 x=40 baseline=60 advance=8
+    glyph char=' ' cluster=6 x=48 baseline=60 advance=4
+    glyph char='e' cluster=7 x=64 baseline=60 advance=8
+    glyph char='a' cluster=8 x=72 baseline=60 advance=8
+    glyph char='c' cluster=9 x=80 baseline=60 advance=8
+    glyph char='h' cluster=10 x=88 baseline=60 advance=8
+    glyph char=' ' cluster=11 x=96 baseline=60 advance=4
+    glyph char='n' cluster=12 x=112 baseline=60 advance=8
+    glyph char='o' cluster=13 x=120 baseline=60 advance=8
+    glyph char='n' cluster=14 x=128 baseline=60 advance=8
+line=4 y=64 baseline=76 available=136 used=81 offset=0 text="final line."
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=81
+    glyph char='f' cluster=0 x=0 baseline=76 advance=8
+    glyph char='i' cluster=1 x=8 baseline=76 advance=8
+    glyph char='n' cluster=2 x=16 baseline=76 advance=8
+    glyph char='a' cluster=3 x=24 baseline=76 advance=8
+    glyph char='l' cluster=4 x=32 baseline=76 advance=8
+    glyph char=' ' cluster=5 x=40 baseline=76 advance=4
+    glyph char='l' cluster=6 x=44 baseline=76 advance=8
+    glyph char='i' cluster=7 x=52 baseline=76 advance=8
+    glyph char='n' cluster=8 x=60 baseline=76 advance=8
+    glyph char='e' cluster=9 x=68 baseline=76 advance=8
+    glyph char='.' cluster=10 x=76 baseline=76 advance=5

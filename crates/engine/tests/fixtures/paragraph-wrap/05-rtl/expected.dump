@@ -1,0 +1,37 @@
+#paragraph width=120 height=48 direction=Rtl align=Start text="مرحبا بالعالم من محرك MeowEngine"
+line=0 y=0 baseline=12 available=120 used=112 offset=8 text="مرحبا بالعالم"
+  run font=4 family="Meow Arabic" script=Arabic direction=Rtl x=8 width=112
+    glyph char='م' cluster=23 x=8 baseline=12 advance=9
+    glyph char='ل' cluster=21 x=17 baseline=12 advance=9
+    glyph char='ا' cluster=19 x=26 baseline=12 advance=9
+    glyph char='ع' cluster=17 x=35 baseline=12 advance=9
+    glyph char='ل' cluster=15 x=44 baseline=12 advance=9
+    glyph char='ا' cluster=13 x=53 baseline=12 advance=9
+    glyph char='ب' cluster=11 x=62 baseline=12 advance=9
+    glyph char=' ' cluster=10 x=71 baseline=12 advance=4
+    glyph char='ا' cluster=8 x=75 baseline=12 advance=9
+    glyph char='ب' cluster=6 x=84 baseline=12 advance=9
+    glyph char='ح' cluster=4 x=93 baseline=12 advance=9
+    glyph char='ر' cluster=2 x=102 baseline=12 advance=9
+    glyph char='م' cluster=0 x=111 baseline=12 advance=9
+line=1 y=16 baseline=28 available=120 used=58 offset=62 text="من محرك"
+  run font=4 family="Meow Arabic" script=Arabic direction=Rtl x=62 width=58
+    glyph char='ك' cluster=11 x=62 baseline=28 advance=9
+    glyph char='ر' cluster=9 x=71 baseline=28 advance=9
+    glyph char='ح' cluster=7 x=80 baseline=28 advance=9
+    glyph char='م' cluster=5 x=89 baseline=28 advance=9
+    glyph char=' ' cluster=4 x=98 baseline=28 advance=4
+    glyph char='ن' cluster=2 x=102 baseline=28 advance=9
+    glyph char='م' cluster=0 x=111 baseline=28 advance=9
+line=2 y=32 baseline=44 available=120 used=80 offset=0 text="MeowEngine"
+  run font=0 family="Meow Sans" script=Latin direction=Ltr x=0 width=80
+    glyph char='M' cluster=0 x=0 baseline=44 advance=8
+    glyph char='e' cluster=1 x=8 baseline=44 advance=8
+    glyph char='o' cluster=2 x=16 baseline=44 advance=8
+    glyph char='w' cluster=3 x=24 baseline=44 advance=8
+    glyph char='E' cluster=4 x=32 baseline=44 advance=8
+    glyph char='n' cluster=5 x=40 baseline=44 advance=8
+    glyph char='g' cluster=6 x=48 baseline=44 advance=8
+    glyph char='i' cluster=7 x=56 baseline=44 advance=8
+    glyph char='n' cluster=8 x=64 baseline=44 advance=8
+    glyph char='e' cluster=9 x=72 baseline=44 advance=8

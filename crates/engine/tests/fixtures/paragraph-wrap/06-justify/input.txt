@@ -1,0 +1,1 @@
+Justified text distributes remaining space across each non final line.
