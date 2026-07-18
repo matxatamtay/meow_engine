@@ -3,5 +3,23 @@
 version = 4
 
 [[package]]
-name = "meowengine"
+name = "meow-browser"
+version = "0.1.0"
+dependencies = [
+ "meow-engine",
+]
+
+[[package]]
+name = "meow-engine"
+version = "0.1.0"
+
+[[package]]
+name = "meow-headless"
+version = "0.1.0"
+dependencies = [
+ "meow-engine",
+]
+
+[[package]]
+name = "xtask"
 version = "0.1.0"
