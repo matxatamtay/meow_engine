@@ -117,6 +117,12 @@ impl Renderer for ReferenceRenderer {
         viewport: Viewport,
         display_list: &DisplayList,
     ) -> Result<Self::Output, RenderError> {
+        tracing::trace!(
+            width = viewport.width,
+            height = viewport.height,
+            commands = display_list.commands().len(),
+            "rasterizing CPU display list"
+        );
         let mut framebuffer = Framebuffer::new(viewport)?;
         for command in display_list.commands() {
             match *command {
@@ -170,6 +176,13 @@ impl GpuRenderer {
         if self.surface.config.width != viewport.width
             || self.surface.config.height != viewport.height
         {
+            tracing::debug!(
+                previous_width = self.surface.config.width,
+                previous_height = self.surface.config.height,
+                width = viewport.width,
+                height = viewport.height,
+                "resizing GPU surface"
+            );
             self.context
                 .resize_surface(&mut self.surface, viewport.width, viewport.height);
         }
@@ -184,6 +197,12 @@ impl Renderer for GpuRenderer {
         viewport: Viewport,
         display_list: &DisplayList,
     ) -> Result<Self::Output, RenderError> {
+        tracing::trace!(
+            width = viewport.width,
+            height = viewport.height,
+            commands = display_list.commands().len(),
+            "lowering display list for GPU presentation"
+        );
         self.resize(viewport);
         let base_color = lower_display_list(&mut self.scene, viewport, display_list);
 
@@ -206,10 +225,12 @@ impl Renderer for GpuRenderer {
         let surface_texture = match self.surface.surface.get_current_texture() {
             CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
             CurrentSurfaceTexture::Outdated | CurrentSurfaceTexture::Suboptimal(_) => {
+                tracing::debug!("GPU surface requires reconfiguration");
                 self.context.configure_surface(&self.surface);
                 return Ok(RenderStatus::Skipped);
             }
             CurrentSurfaceTexture::Occluded | CurrentSurfaceTexture::Timeout => {
+                tracing::trace!("GPU presentation temporarily skipped");
                 return Ok(RenderStatus::Skipped);
             }
             CurrentSurfaceTexture::Lost => {

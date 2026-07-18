@@ -1,8 +1,8 @@
-use std::{backtrace::Backtrace, error::Error, panic, thread};
+use std::{backtrace::Backtrace, env, error::Error, panic, thread};
 
 use tracing_subscriber::EnvFilter;
 
-const DEFAULT_FILTER: &str = "meow_browser=debug,meow_engine=debug,winit=info,softbuffer=info";
+const DEFAULT_FILTER: &str = "meow_browser=debug,meow_embedder_api=debug,meow_engine=debug,meow_renderer=debug,winit=info,softbuffer=info,vello=info,wgpu_core=warn,wgpu_hal=warn";
 
 pub fn init() -> Result<(), Box<dyn Error>> {
     let filter =
@@ -13,6 +13,7 @@ pub fn init() -> Result<(), Box<dyn Error>> {
         .with_target(true)
         .with_thread_ids(true)
         .with_thread_names(true)
+        .with_ansi(env::var_os("NO_COLOR").is_none())
         .compact()
         .try_init()
         .map_err(|error| std::io::Error::other(error.to_string()))?;

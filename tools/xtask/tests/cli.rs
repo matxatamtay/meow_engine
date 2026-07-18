@@ -9,7 +9,33 @@ fn help_succeeds() {
     let output = xtask().arg("--help").output().expect("run xtask help");
 
     assert!(output.status.success());
-    assert!(String::from_utf8_lossy(&output.stdout).contains("cargo xtask doctor"));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("cargo xtask doctor"));
+    assert!(stdout.contains("cargo xtask dev"));
+}
+
+#[test]
+fn dev_help_succeeds_without_starting_the_browser() {
+    let output = xtask()
+        .args(["dev", "--help"])
+        .output()
+        .expect("run xtask dev help");
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("--trace"));
+    assert!(stdout.contains("--log-file=<path>"));
+}
+
+#[test]
+fn invalid_dev_option_returns_usage_error() {
+    let output = xtask()
+        .args(["dev", "--cats"])
+        .output()
+        .expect("run invalid xtask dev option");
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("unknown dev option"));
 }
 
 #[test]

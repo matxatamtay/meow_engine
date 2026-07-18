@@ -54,11 +54,16 @@ impl BrowserEngine {
 
     /// Requests a resolved frame for physical pixel dimensions.
     pub fn render_frame(&mut self, width: u32, height: u32) -> Result<Frame, EmbedderError> {
+        tracing::trace!(width, height, "requesting resolved engine frame");
         let viewport = Viewport::new(width, height).map_err(EmbedderError::from)?;
         let display_list = self
             .engine
             .build_display_list(viewport)
             .map_err(EmbedderError::from)?;
+        tracing::trace!(
+            commands = display_list.commands().len(),
+            "resolved engine frame"
+        );
         Ok(Frame {
             viewport,
             display_list,

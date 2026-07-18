@@ -1,3 +1,4 @@
+mod dev;
 mod doctor;
 
 use std::process::ExitCode;
@@ -15,6 +16,7 @@ pub fn run(args: impl IntoIterator<Item = String>) -> ExitCode {
             ExitCode::SUCCESS
         }
         [command] if command == "doctor" => doctor::run(),
+        [command, rest @ ..] if command == "dev" => dev::run(rest),
         [command, ..] => {
             eprintln!("unknown xtask command: {command}\n");
             print_usage();
@@ -24,5 +26,7 @@ pub fn run(args: impl IntoIterator<Item = String>) -> ExitCode {
 }
 
 fn print_usage() {
-    println!("MeowEngine repository tasks\n\nusage:\n  cargo xtask doctor");
+    println!(
+        "MeowEngine repository tasks\n\nusage:\n  cargo xtask doctor\n  cargo xtask dev [options]"
+    );
 }

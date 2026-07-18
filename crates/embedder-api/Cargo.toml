@@ -12,3 +12,4 @@ workspace = true
 [dependencies]
 meow-display-list = { path = "../display-list" }
 meow-engine = { path = "../engine" }
+tracing.workspace = true

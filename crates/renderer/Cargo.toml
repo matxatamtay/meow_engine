@@ -13,4 +13,5 @@ workspace = true
 meow-display-list = { path = "../display-list" }
 pollster.workspace = true
 tiny-skia.workspace = true
+tracing.workspace = true
 vello.workspace = true

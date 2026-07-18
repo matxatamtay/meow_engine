@@ -24,6 +24,26 @@ bash scripts/verify.sh
 The doctor checks bootstrap health. The verification script is the canonical
 format, Clippy, test, and doctor gate used by CI.
 
+Run an instrumented development browser process with live logs and a persistent
+session log:
+
+```bash
+cargo xtask dev --renderer=gpu
+cargo xtask dev --trace --renderer=gpu
+cargo xtask dev --debug --renderer=cpu --smoke-test
+```
+
+The launcher injects `RUST_LOG`, `RUST_BACKTRACE=1`, and a `MEOW_DEV_SESSION`
+identifier into the browser process. Merged stdout/stderr remains visible in the
+terminal and is also written to `artifacts/logs/`. Use `--rust-log=<filter>` for
+a custom module filter, `--log-file=<path>` for a fixed destination, or
+`--no-log-file` for terminal-only output. Follow the newest session while it is
+running with:
+
+```bash
+tail -f "$(ls -t artifacts/logs/*.log | head -n 1)"
+```
+
 ## Desktop shell
 
 ```bash

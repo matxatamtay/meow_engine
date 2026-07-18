@@ -957,6 +957,7 @@ version = "0.1.0"
 dependencies = [
  "meow-display-list",
  "meow-engine",
+ "tracing",
 ]
 
 [[package]]
@@ -981,6 +982,7 @@ dependencies = [
  "meow-display-list",
  "pollster",
  "tiny-skia",
+ "tracing",
  "vello",
 ]
 

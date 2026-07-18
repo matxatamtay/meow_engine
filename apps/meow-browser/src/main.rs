@@ -14,7 +14,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let event_loop = build_event_loop(options.backend)?;
     event_loop.set_control_flow(ControlFlow::Wait);
 
+    let dev_session = env::var("MEOW_DEV_SESSION").unwrap_or_else(|_| "direct".to_owned());
     tracing::info!(
+        dev_session,
         engine = meow_embedder_api::ENGINE_NAME,
         version = meow_embedder_api::engine_version(),
         requested_backend = ?options.backend,
