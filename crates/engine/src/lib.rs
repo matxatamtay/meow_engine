@@ -3,6 +3,7 @@
 mod box_tree;
 mod encoding;
 mod error;
+mod layout;
 mod model;
 mod navigator;
 mod style;
@@ -11,7 +12,11 @@ use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene
 
 pub use box_tree::{BoxId, BoxKind, BoxNode, BoxTree, build_box_tree};
 pub use error::NavigationError;
-pub use meow_css::PropertyId;
+pub use layout::{
+    CssPx, EdgeSizes, LayoutBox, LayoutRect, LayoutTree, LayoutViewport, OverflowMetadata,
+    layout_box_tree,
+};
+pub use meow_css::{PropertyId, parse_selector_list};
 pub use meow_net::CancellationToken;
 pub use meow_url_policy::BrowserUrl;
 pub use model::{

@@ -7,10 +7,11 @@ mod syntax;
 use std::fmt;
 
 pub use properties::{
-    ALL_PROPERTIES, BorderWidthValue, BoxSizingValue, ColorValue, ComputedValue, CssNumber,
-    CssWideKeyword, DisplayValue, Length, LengthOrAuto, LengthUnit, NamedColor,
-    PropertyDeclaration, PropertyId, SpecifiedValue, W11_SNAPSHOT_PROPERTIES, parse_computed_value,
-    parse_css_wide_keyword, parse_property_declaration, parse_property_declarations,
+    ALL_PROPERTIES, BorderWidthValue, BoxSizingValue, CSS_NUMBER_SCALE, ColorValue, ComputedValue,
+    CssNumber, CssWideKeyword, DisplayValue, Length, LengthOrAuto, LengthOrNone, LengthUnit,
+    NamedColor, PropertyDeclaration, PropertyId, SpecifiedValue, W11_SNAPSHOT_PROPERTIES,
+    W12_SNAPSHOT_PROPERTIES, parse_computed_value, parse_css_wide_keyword,
+    parse_property_declaration, parse_property_declarations,
 };
 pub use selectors::{
     AnPlusB, AttributeCaseSensitivity, AttributeMatcher, AttributeSelector, Combinator,

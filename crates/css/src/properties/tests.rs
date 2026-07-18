@@ -13,8 +13,9 @@ fn declaration(name: &str, value: &str) -> Declaration {
 
 #[test]
 fn registry_has_stable_names_initials_and_inheritance() {
-    assert_eq!(ALL_PROPERTIES.len(), 26);
+    assert_eq!(ALL_PROPERTIES.len(), 30);
     assert_eq!(W11_SNAPSHOT_PROPERTIES.len(), 13);
+    assert_eq!(W12_SNAPSHOT_PROPERTIES.len(), 26);
     assert_eq!(PropertyId::Color.name(), "color");
     assert!(PropertyId::Color.inherited());
     assert!(!PropertyId::Display.inherited());

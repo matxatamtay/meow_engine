@@ -8,8 +8,8 @@ use meow_net::ResponseMetadata;
 use meow_url_policy::BrowserUrl;
 
 use crate::{
-    BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, build_box_tree,
-    compute_styles,
+    BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, LayoutTree, LayoutViewport,
+    build_box_tree, compute_styles, layout_box_tree,
 };
 
 /// Source that selected the committed document encoding.
@@ -185,5 +185,19 @@ impl DocumentState {
     #[must_use]
     pub fn dump_box_tree(&self) -> String {
         self.box_tree().dump()
+    }
+
+    /// Resolves W14 layout geometry for one viewport.
+    #[must_use]
+    pub fn layout(&self, viewport: LayoutViewport) -> LayoutTree {
+        let styles = self.computed_styles();
+        let boxes = build_box_tree(&self.document, &styles);
+        layout_box_tree(&boxes, &styles, viewport)
+    }
+
+    /// Produces a deterministic layout-tree dump.
+    #[must_use]
+    pub fn dump_layout(&self, viewport: LayoutViewport) -> String {
+        self.layout(viewport).dump()
     }
 }

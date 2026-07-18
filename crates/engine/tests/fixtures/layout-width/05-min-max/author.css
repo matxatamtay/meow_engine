@@ -1,0 +1,1 @@
+html, body, main, section { display:block } #min { width:20px; min-width:80px } #max { width:180px; max-width:120px }

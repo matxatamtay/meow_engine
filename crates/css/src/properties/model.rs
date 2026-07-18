@@ -1,4 +1,4 @@
-/// Longhand properties supported by the W12 computed-style stage.
+/// Longhand properties supported by the computed-style stage.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PropertyId {
     Display,
@@ -14,6 +14,10 @@ pub enum PropertyId {
     Opacity,
     Width,
     Height,
+    MinWidth,
+    MaxWidth,
+    MinHeight,
+    MaxHeight,
     MarginTop,
     MarginRight,
     MarginBottom,
@@ -29,8 +33,8 @@ pub enum PropertyId {
     BoxSizing,
 }
 
-/// Every W12 property in deterministic registry order.
-pub const ALL_PROPERTIES: [PropertyId; 26] = [
+/// Every supported property in deterministic registry order.
+pub const ALL_PROPERTIES: [PropertyId; 30] = [
     PropertyId::Display,
     PropertyId::Color,
     PropertyId::BackgroundColor,
@@ -44,6 +48,10 @@ pub const ALL_PROPERTIES: [PropertyId; 26] = [
     PropertyId::Opacity,
     PropertyId::Width,
     PropertyId::Height,
+    PropertyId::MinWidth,
+    PropertyId::MaxWidth,
+    PropertyId::MinHeight,
+    PropertyId::MaxHeight,
     PropertyId::MarginTop,
     PropertyId::MarginRight,
     PropertyId::MarginBottom,
@@ -76,38 +84,72 @@ pub const W11_SNAPSHOT_PROPERTIES: [PropertyId; 13] = [
     PropertyId::Height,
 ];
 
+/// W12 properties retained by the typed snapshot introduced in W12.
+pub const W12_SNAPSHOT_PROPERTIES: [PropertyId; 26] = [
+    PropertyId::Display,
+    PropertyId::Color,
+    PropertyId::BackgroundColor,
+    PropertyId::FontFamily,
+    PropertyId::FontSize,
+    PropertyId::FontStyle,
+    PropertyId::FontWeight,
+    PropertyId::LineHeight,
+    PropertyId::TextAlign,
+    PropertyId::Visibility,
+    PropertyId::Opacity,
+    PropertyId::Width,
+    PropertyId::Height,
+    PropertyId::MarginTop,
+    PropertyId::MarginRight,
+    PropertyId::MarginBottom,
+    PropertyId::MarginLeft,
+    PropertyId::PaddingTop,
+    PropertyId::PaddingRight,
+    PropertyId::PaddingBottom,
+    PropertyId::PaddingLeft,
+    PropertyId::BorderTopWidth,
+    PropertyId::BorderRightWidth,
+    PropertyId::BorderBottomWidth,
+    PropertyId::BorderLeftWidth,
+    PropertyId::BoxSizing,
+];
+
 impl PropertyId {
     #[must_use]
     pub fn from_name(name: &str) -> Option<Self> {
-        match name.to_ascii_lowercase().as_str() {
-            "display" => Some(Self::Display),
-            "color" => Some(Self::Color),
-            "background-color" => Some(Self::BackgroundColor),
-            "font-family" => Some(Self::FontFamily),
-            "font-size" => Some(Self::FontSize),
-            "font-style" => Some(Self::FontStyle),
-            "font-weight" => Some(Self::FontWeight),
-            "line-height" => Some(Self::LineHeight),
-            "text-align" => Some(Self::TextAlign),
-            "visibility" => Some(Self::Visibility),
-            "opacity" => Some(Self::Opacity),
-            "width" => Some(Self::Width),
-            "height" => Some(Self::Height),
-            "margin-top" => Some(Self::MarginTop),
-            "margin-right" => Some(Self::MarginRight),
-            "margin-bottom" => Some(Self::MarginBottom),
-            "margin-left" => Some(Self::MarginLeft),
-            "padding-top" => Some(Self::PaddingTop),
-            "padding-right" => Some(Self::PaddingRight),
-            "padding-bottom" => Some(Self::PaddingBottom),
-            "padding-left" => Some(Self::PaddingLeft),
-            "border-top-width" => Some(Self::BorderTopWidth),
-            "border-right-width" => Some(Self::BorderRightWidth),
-            "border-bottom-width" => Some(Self::BorderBottomWidth),
-            "border-left-width" => Some(Self::BorderLeftWidth),
-            "box-sizing" => Some(Self::BoxSizing),
-            _ => None,
-        }
+        Some(match name.to_ascii_lowercase().as_str() {
+            "display" => Self::Display,
+            "color" => Self::Color,
+            "background-color" => Self::BackgroundColor,
+            "font-family" => Self::FontFamily,
+            "font-size" => Self::FontSize,
+            "font-style" => Self::FontStyle,
+            "font-weight" => Self::FontWeight,
+            "line-height" => Self::LineHeight,
+            "text-align" => Self::TextAlign,
+            "visibility" => Self::Visibility,
+            "opacity" => Self::Opacity,
+            "width" => Self::Width,
+            "height" => Self::Height,
+            "min-width" => Self::MinWidth,
+            "max-width" => Self::MaxWidth,
+            "min-height" => Self::MinHeight,
+            "max-height" => Self::MaxHeight,
+            "margin-top" => Self::MarginTop,
+            "margin-right" => Self::MarginRight,
+            "margin-bottom" => Self::MarginBottom,
+            "margin-left" => Self::MarginLeft,
+            "padding-top" => Self::PaddingTop,
+            "padding-right" => Self::PaddingRight,
+            "padding-bottom" => Self::PaddingBottom,
+            "padding-left" => Self::PaddingLeft,
+            "border-top-width" => Self::BorderTopWidth,
+            "border-right-width" => Self::BorderRightWidth,
+            "border-bottom-width" => Self::BorderBottomWidth,
+            "border-left-width" => Self::BorderLeftWidth,
+            "box-sizing" => Self::BoxSizing,
+            _ => return None,
+        })
     }
 
     #[must_use]
@@ -126,6 +168,10 @@ impl PropertyId {
             Self::Opacity => "opacity",
             Self::Width => "width",
             Self::Height => "height",
+            Self::MinWidth => "min-width",
+            Self::MaxWidth => "max-width",
+            Self::MinHeight => "min-height",
+            Self::MaxHeight => "max-height",
             Self::MarginTop => "margin-top",
             Self::MarginRight => "margin-right",
             Self::MarginBottom => "margin-bottom",
@@ -172,6 +218,8 @@ impl PropertyId {
             Self::Visibility => "visible",
             Self::Opacity => "1",
             Self::Width | Self::Height => "auto",
+            Self::MinWidth | Self::MinHeight => "0px",
+            Self::MaxWidth | Self::MaxHeight => "none",
             Self::MarginTop | Self::MarginRight | Self::MarginBottom | Self::MarginLeft => "0px",
             Self::PaddingTop | Self::PaddingRight | Self::PaddingBottom | Self::PaddingLeft => {
                 "0px"

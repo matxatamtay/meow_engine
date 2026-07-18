@@ -1,0 +1,8 @@
+#layout-tree viewport=320x240
+principal-block box=0 source=2 cb=320 content=(0,0 320x0) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=320x0 overflow=(false,false 320x0)
+  anonymous-block box=6 source=- cb=320 content=(0,0 320x0) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=320x0 overflow=(false,false 320x0)
+    principal-inline box=1 source=3 cb=320 content=(0,0 0x0) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=0x0 overflow=(false,false 0x0)
+  principal-block box=2 source=4 cb=320 content=(0,0 320x0) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=320x0 overflow=(false,false 320x0)
+    principal-block box=3 source=5 cb=320 content=(0,0 320x0) margin=(0,0,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=320x0 overflow=(false,false 320x0)
+      principal-block box=4 source=6 cb=320 content=(0,0 80x0) margin=(0,240,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=80x0 overflow=(false,false 80x0)
+      principal-block box=5 source=7 cb=320 content=(0,0 120x0) margin=(0,200,0,0) padding=(0,0,0,0) border=(0,0,0,0) border-box=120x0 overflow=(false,false 120x0)

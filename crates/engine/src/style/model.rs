@@ -1,6 +1,9 @@
 use std::{collections::BTreeMap, fmt::Write as _};
 
-use meow_css::{ALL_PROPERTIES, ComputedValue, PropertyId, Stylesheet, W11_SNAPSHOT_PROPERTIES};
+use meow_css::{
+    ALL_PROPERTIES, ComputedValue, PropertyId, Stylesheet, W11_SNAPSHOT_PROPERTIES,
+    W12_SNAPSHOT_PROPERTIES,
+};
 use meow_html::NodeId;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -163,7 +166,7 @@ impl ComputedStyleSnapshot {
                 element.node.slot, element.local_name, element.element_id, element.generation
             )
             .expect("writing to String cannot fail");
-            for property in ALL_PROPERTIES {
+            for property in W12_SNAPSHOT_PROPERTIES {
                 writeln!(
                     output,
                     "  {} kind={} value={:?}",
