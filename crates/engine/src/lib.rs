@@ -9,6 +9,7 @@ mod model;
 mod navigator;
 mod paint;
 mod style;
+mod text;
 
 use meow_display_list::{DisplayList, DisplayListError, Viewport, reference_scene};
 
@@ -36,6 +37,7 @@ pub use style::{
     DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, StyleEngine, ValueDiagnostic,
     compute_styles,
 };
+pub use text::{ShapedGlyph, ShapedRun, ShapedText, TextDirection, is_combining_mark, shape_text};
 
 /// Human-readable engine name used by first-party applications.
 pub const ENGINE_NAME: &str = "MeowEngine";

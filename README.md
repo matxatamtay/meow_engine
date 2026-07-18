@@ -102,6 +102,7 @@ cargo run --locked -p meow-headless -- --dump-css https://example.com/
 - [W15 vertical flow and margins](docs/w15-vertical-flow-and-margins.md)
 - [W16 paint backgrounds and borders](docs/w16-paint-backgrounds-and-borders.md)
 - [W17 font database](docs/w17-font-database.md)
+- [W18 shaping and bidi](docs/w18-shaping-and-bidi.md)
 - [Current limitations](docs/limitations.md)
 - [ADR template](docs/adr/0000-template.md)
 - [ADR 0001: Bootstrap workspace and tooling](docs/adr/0001-bootstrap-workspace-and-tooling.md)

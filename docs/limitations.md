@@ -38,7 +38,7 @@ computed-style snapshots. It is not yet a complete web platform.
 - Text, images, paths, clipping, transforms, filters, color management, and CSS paint
   semantics remain out of scope.
 
-## W9-W17 CSS, layout, paint, and font limits
+## W9-W18 CSS, layout, paint, fonts, and shaping limits
 
 - W9 stylesheet snapshots still retain raw selector preludes for deterministic compatibility.
   W10 parses them on demand through `StyleRule::selector_list()`.
