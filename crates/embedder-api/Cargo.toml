@@ -1,5 +1,5 @@
 [package]
-name = "meow-headless"
+name = "meow-embedder-api"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,5 +10,5 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
-meow-embedder-api = { path = "../../crates/embedder-api" }
-meow-renderer = { path = "../../crates/renderer" }
+meow-display-list = { path = "../display-list" }
+meow-engine = { path = "../engine" }

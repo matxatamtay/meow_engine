@@ -1,5 +1,7 @@
-use std::{num::NonZeroU32, sync::Arc};
+use std::{error::Error, fmt, num::NonZeroU32, sync::Arc};
 
+use meow_embedder_api::{BrowserEngine, EmbedderError, Viewport};
+use meow_renderer::{GpuRenderer, ReferenceRenderer, RenderError, RenderStatus, Renderer};
 use softbuffer::{Context, SoftBufferError, Surface};
 use winit::{
     application::ApplicationHandler,
@@ -11,15 +13,21 @@ use winit::{
 
 const INITIAL_SIZE: LogicalSize<f64> = LogicalSize::new(1280.0, 800.0);
 const MINIMUM_SIZE: LogicalSize<f64> = LogicalSize::new(640.0, 480.0);
-const CLEAR_COLOR: u32 = 0x0014_1822;
-
 type DisplayContext = Context<OwnedDisplayHandle>;
 type WindowSurface = Surface<OwnedDisplayHandle, Arc<Window>>;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PresentationBackend {
+    Cpu,
+    Gpu,
+}
+
 pub struct BrowserApp {
-    context: DisplayContext,
+    cpu_context: Option<DisplayContext>,
+    requested_renderer: PresentationBackend,
+    engine: BrowserEngine,
     window: Option<Arc<Window>>,
-    surface: Option<WindowSurface>,
+    presenter: Option<Presenter>,
     metrics: Option<WindowMetrics>,
     lifecycle: Lifecycle,
     presented_frames: u64,
@@ -27,11 +35,17 @@ pub struct BrowserApp {
 }
 
 impl BrowserApp {
-    pub fn new(context: DisplayContext, exit_after_first_frame: bool) -> Self {
+    pub fn new(
+        cpu_context: Option<DisplayContext>,
+        requested_renderer: PresentationBackend,
+        exit_after_first_frame: bool,
+    ) -> Self {
         Self {
-            context,
+            cpu_context,
+            requested_renderer,
+            engine: BrowserEngine::new(),
             window: None,
-            surface: None,
+            presenter: None,
             metrics: None,
             lifecycle: Lifecycle::Starting,
             presented_frames: 0,
@@ -41,7 +55,7 @@ impl BrowserApp {
 
     fn ensure_window(&mut self, event_loop: &ActiveEventLoop) {
         if self.window.is_some() {
-            self.ensure_surface(event_loop);
+            self.ensure_presenter(event_loop);
             if let Some(window) = &self.window {
                 window.request_redraw();
             }
@@ -51,8 +65,8 @@ impl BrowserApp {
         let attributes = Window::default_attributes()
             .with_title(format!(
                 "{} {}",
-                meow_engine::ENGINE_NAME,
-                meow_engine::version()
+                meow_embedder_api::ENGINE_NAME,
+                meow_embedder_api::engine_version()
             ))
             .with_inner_size(INITIAL_SIZE)
             .with_min_inner_size(MINIMUM_SIZE)
@@ -67,20 +81,14 @@ impl BrowserApp {
             }
         };
 
-        let surface = match Surface::new(&self.context, Arc::clone(&window)) {
-            Ok(surface) => surface,
-            Err(error) => {
-                tracing::error!(%error, "failed to create software presentation surface");
-                event_loop.exit();
-                return;
-            }
-        };
-
         let metrics = WindowMetrics::new(window.inner_size(), window.scale_factor());
         self.lifecycle = Lifecycle::Running;
         self.metrics = Some(metrics);
-        self.surface = Some(surface);
         self.window = Some(Arc::clone(&window));
+        self.ensure_presenter(event_loop);
+        if self.presenter.is_none() {
+            return;
+        }
 
         tracing::info!(
             backend = display_backend(event_loop),
@@ -96,25 +104,54 @@ impl BrowserApp {
         window.request_redraw();
     }
 
-    fn ensure_surface(&mut self, event_loop: &ActiveEventLoop) {
-        if self.surface.is_some() {
+    fn ensure_presenter(&mut self, event_loop: &ActiveEventLoop) {
+        if self.presenter.is_some() {
             return;
         }
 
         let Some(window) = self.window.as_ref().cloned() else {
             return;
         };
-
-        match Surface::new(&self.context, window) {
-            Ok(surface) => {
-                self.surface = Some(surface);
-                tracing::debug!("presentation surface recreated after resume");
-            }
+        let size = window.inner_size();
+        let viewport = match Viewport::new(size.width.max(1), size.height.max(1)) {
+            Ok(viewport) => viewport,
             Err(error) => {
-                tracing::error!(%error, "failed to recreate presentation surface");
+                tracing::error!(%error, "invalid initial render viewport");
                 event_loop.exit();
+                return;
             }
-        }
+        };
+
+        let presenter = match self.requested_renderer {
+            PresentationBackend::Cpu => {
+                let Some(context) = self.cpu_context.as_ref() else {
+                    tracing::error!("CPU renderer selected without a software display context");
+                    event_loop.exit();
+                    return;
+                };
+                match Surface::new(context, window) {
+                    Ok(surface) => Presenter::Cpu {
+                        surface,
+                        renderer: ReferenceRenderer::new(),
+                    },
+                    Err(error) => {
+                        tracing::error!(%error, "failed to create software presentation surface");
+                        event_loop.exit();
+                        return;
+                    }
+                }
+            }
+            PresentationBackend::Gpu => match GpuRenderer::new(window, viewport) {
+                Ok(renderer) => Presenter::Gpu(Box::new(renderer)),
+                Err(error) => {
+                    tracing::error!(%error, "failed to create Vello/wgpu renderer");
+                    event_loop.exit();
+                    return;
+                }
+            },
+        };
+        self.presenter = Some(presenter);
+        tracing::info!(renderer = ?self.requested_renderer, "presentation backend ready");
     }
 
     fn handle_resize(&mut self, size: PhysicalSize<u32>) {
@@ -163,7 +200,7 @@ impl BrowserApp {
         );
     }
 
-    fn redraw(&mut self, event_loop: &ActiveEventLoop) -> Result<(), SoftBufferError> {
+    fn redraw(&mut self, event_loop: &ActiveEventLoop) -> Result<(), FrameError> {
         let Some(size) = self.window.as_ref().map(|window| window.inner_size()) else {
             return Ok(());
         };
@@ -172,14 +209,29 @@ impl BrowserApp {
         else {
             return Ok(());
         };
-        let Some(surface) = self.surface.as_mut() else {
+        let frame = self.engine.render_frame(width.get(), height.get())?;
+        let Some(presenter) = self.presenter.as_mut() else {
             return Ok(());
         };
 
-        surface.resize(width, height)?;
-        let mut buffer = surface.buffer_mut()?;
-        buffer.fill(CLEAR_COLOR);
-        buffer.present()?;
+        let status = match presenter {
+            Presenter::Cpu { surface, renderer } => {
+                surface.resize(width, height)?;
+                let framebuffer = renderer.render(frame.viewport(), frame.display_list())?;
+                let pixels = framebuffer.softbuffer_pixels();
+                let mut buffer = surface.buffer_mut()?;
+                buffer.copy_from_slice(&pixels);
+                buffer.present()?;
+                RenderStatus::Presented
+            }
+            Presenter::Gpu(renderer) => renderer.render(frame.viewport(), frame.display_list())?,
+        };
+        if status == RenderStatus::Skipped {
+            if let Some(window) = &self.window {
+                window.request_redraw();
+            }
+            return Ok(());
+        }
 
         self.presented_frames += 1;
         if self.presented_frames == 1 {
@@ -209,7 +261,7 @@ impl ApplicationHandler for BrowserApp {
     fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
         tracing::info!(previous_state = ?self.lifecycle, "application suspended");
         self.lifecycle = Lifecycle::Suspended;
-        self.surface = None;
+        self.presenter = None;
     }
 
     fn window_event(
@@ -235,7 +287,7 @@ impl ApplicationHandler for BrowserApp {
             }
             WindowEvent::Destroyed => {
                 tracing::info!(?window_id, "window destroyed");
-                self.surface = None;
+                self.presenter = None;
                 self.window = None;
                 self.lifecycle = Lifecycle::Exiting;
                 event_loop.exit();
@@ -262,7 +314,7 @@ impl ApplicationHandler for BrowserApp {
             }
             WindowEvent::RedrawRequested => {
                 if let Err(error) = self.redraw(event_loop) {
-                    tracing::error!(%error, "frame presentation failed");
+                    tracing::error!(%error, renderer = ?self.requested_renderer, "frame presentation failed");
                     event_loop.exit();
                 }
             }
@@ -272,12 +324,57 @@ impl ApplicationHandler for BrowserApp {
 
     fn exiting(&mut self, _event_loop: &ActiveEventLoop) {
         self.lifecycle = Lifecycle::Exiting;
-        self.surface = None;
+        self.presenter = None;
         self.window = None;
         tracing::info!(
             presented_frames = self.presented_frames,
             "event loop exiting"
         );
+    }
+}
+
+enum Presenter {
+    Cpu {
+        surface: WindowSurface,
+        renderer: ReferenceRenderer,
+    },
+    Gpu(Box<GpuRenderer>),
+}
+
+#[derive(Debug)]
+enum FrameError {
+    Embedder(EmbedderError),
+    Renderer(RenderError),
+    SoftBuffer(SoftBufferError),
+}
+
+impl fmt::Display for FrameError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Embedder(error) => error.fmt(formatter),
+            Self::Renderer(error) => error.fmt(formatter),
+            Self::SoftBuffer(error) => error.fmt(formatter),
+        }
+    }
+}
+
+impl Error for FrameError {}
+
+impl From<EmbedderError> for FrameError {
+    fn from(error: EmbedderError) -> Self {
+        Self::Embedder(error)
+    }
+}
+
+impl From<RenderError> for FrameError {
+    fn from(error: RenderError) -> Self {
+        Self::Renderer(error)
+    }
+}
+
+impl From<SoftBufferError> for FrameError {
+    fn from(error: SoftBufferError) -> Self {
+        Self::SoftBuffer(error)
     }
 }
 

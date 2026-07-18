@@ -10,7 +10,8 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
-meow-engine = { path = "../../crates/engine" }
+meow-embedder-api = { path = "../../crates/embedder-api" }
+meow-renderer = { path = "../../crates/renderer" }
 softbuffer.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true

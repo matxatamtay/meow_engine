@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use meow_engine::reference_renderer::{MIN_REFERENCE_DIMENSION, REFERENCE_HEIGHT, REFERENCE_WIDTH};
+use meow_embedder_api::{MIN_REFERENCE_DIMENSION, REFERENCE_HEIGHT, REFERENCE_WIDTH};
 
 const DEFAULT_OUTPUT: &str = "meow-reference.png";
 
@@ -77,7 +77,7 @@ pub fn print_help() {
          Usage:\n  {name} [--output PATH] [--width PIXELS] [--height PIXELS]\n\n\
          Options:\n  --output PATH    Output PNG path [default: {default_output}]\n  --width PIXELS   Framebuffer width [default: {default_width}]\n  --height PIXELS  Framebuffer height [default: {default_height}]\n  -h, --help       Print this help\n",
         name = env!("CARGO_PKG_NAME"),
-        version = meow_engine::version(),
+        version = env!("CARGO_PKG_VERSION"),
         default_output = DEFAULT_OUTPUT,
         default_width = REFERENCE_WIDTH,
         default_height = REFERENCE_HEIGHT,

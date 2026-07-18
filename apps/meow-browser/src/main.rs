@@ -3,7 +3,7 @@ mod diagnostics;
 
 use std::{env, error::Error, io};
 
-use app::BrowserApp;
+use app::{BrowserApp, PresentationBackend};
 use softbuffer::Context;
 use winit::event_loop::{ControlFlow, EventLoop};
 
@@ -15,15 +15,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     event_loop.set_control_flow(ControlFlow::Wait);
 
     tracing::info!(
-        engine = meow_engine::ENGINE_NAME,
-        version = meow_engine::version(),
+        engine = meow_embedder_api::ENGINE_NAME,
+        version = meow_embedder_api::engine_version(),
         requested_backend = ?options.backend,
+        renderer = ?options.renderer,
         exit_after_first_frame = options.smoke_test,
         "starting browser shell"
     );
 
-    let context = Context::new(event_loop.owned_display_handle())?;
-    let mut app = BrowserApp::new(context, options.smoke_test);
+    let cpu_context = if options.renderer == PresentationBackend::Cpu {
+        Some(Context::new(event_loop.owned_display_handle())?)
+    } else {
+        None
+    };
+    let mut app = BrowserApp::new(cpu_context, options.renderer, options.smoke_test);
     event_loop.run_app(&mut app)?;
 
     tracing::info!("browser shell stopped cleanly");
@@ -40,6 +45,7 @@ enum RequestedBackend {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Options {
     backend: RequestedBackend,
+    renderer: PresentationBackend,
     smoke_test: bool,
 }
 
@@ -47,6 +53,7 @@ impl Options {
     fn parse(arguments: impl IntoIterator<Item = std::ffi::OsString>) -> io::Result<Self> {
         let mut options = Self {
             backend: RequestedBackend::Auto,
+            renderer: PresentationBackend::Gpu,
             smoke_test: false,
         };
 
@@ -57,11 +64,13 @@ impl Options {
                 "--backend=auto" => options.backend = RequestedBackend::Auto,
                 "--backend=wayland" => options.backend = RequestedBackend::Wayland,
                 "--backend=x11" => options.backend = RequestedBackend::X11,
+                "--renderer=cpu" => options.renderer = PresentationBackend::Cpu,
+                "--renderer=gpu" => options.renderer = PresentationBackend::Gpu,
                 _ => {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidInput,
                         format!(
-                            "unknown argument {argument:?}; expected --smoke-test or --backend=auto|wayland|x11"
+                            "unknown argument {argument:?}; expected --smoke-test, --backend=auto|wayland|x11, or --renderer=cpu|gpu"
                         ),
                     ));
                 }
@@ -103,11 +112,13 @@ mod tests {
     fn parses_backend_and_smoke_test_options() {
         let options = Options::parse([
             std::ffi::OsString::from("--backend=x11"),
+            std::ffi::OsString::from("--renderer=cpu"),
             std::ffi::OsString::from("--smoke-test"),
         ])
         .expect("options should parse");
 
         assert_eq!(options.backend, RequestedBackend::X11);
+        assert_eq!(options.renderer, PresentationBackend::Cpu);
         assert!(options.smoke_test);
     }
 
