@@ -1,7 +1,10 @@
 use std::{
     env, fs,
+    io::{Read, Write},
+    net::TcpListener,
     path::{Path, PathBuf},
     process::{Command, Output},
+    thread,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -28,6 +31,42 @@ fn writes_byte_identical_pngs_for_identical_inputs() {
     assert_eq!(fnv1a64(&first), 0x99cd_e2cb_3f11_5bba);
 
     fs::remove_dir_all(directory).expect("temporary directory should be removable");
+}
+
+#[test]
+fn dumps_dom_from_a_loaded_url() {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("test server should bind");
+    let address = listener.local_addr().unwrap();
+    let server = thread::spawn(move || {
+        let (mut stream, _) = listener.accept().expect("headless client should connect");
+        let mut request = [0_u8; 4096];
+        let _ = stream
+            .read(&mut request)
+            .expect("request should be readable");
+        let body = b"<!doctype html><title>Meow</title><p id=cat>loaded";
+        write!(
+            stream,
+            "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            body.len()
+        )
+        .expect("headers should be writable");
+        stream.write_all(body).expect("body should be writable");
+    });
+
+    let output = Command::new(env!("CARGO_BIN_EXE_meow-headless"))
+        .arg("--dump-dom")
+        .arg(format!("http://{address}/page"))
+        .output()
+        .expect("meow-headless should run");
+    assert_success(&output);
+    server.join().expect("test server should finish");
+
+    let dump = String::from_utf8(output.stdout).expect("DOM dump should be UTF-8");
+    assert!(dump.starts_with("#document\n"));
+    assert!(dump.contains("<title>"));
+    assert!(dump.contains("\"Meow\""));
+    assert!(dump.contains("<p id=\"cat\">"));
+    assert!(dump.contains("\"loaded\""));
 }
 
 #[test]

@@ -11,8 +11,10 @@ const DEFAULT_OUTPUT: &str = "meow-reference.png";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Options {
     pub output: PathBuf,
+    pub output_explicit: bool,
     pub width: u32,
     pub height: u32,
+    pub dom_url: Option<String>,
     pub help: bool,
 }
 
@@ -20,8 +22,10 @@ impl Default for Options {
     fn default() -> Self {
         Self {
             output: PathBuf::from(DEFAULT_OUTPUT),
+            output_explicit: false,
             width: REFERENCE_WIDTH,
             height: REFERENCE_HEIGHT,
+            dom_url: None,
             help: false,
         }
     }
@@ -37,6 +41,18 @@ impl Options {
                 options.help = true;
             } else if argument == OsStr::new("--output") {
                 options.output = PathBuf::from(next_value(&mut arguments, "--output")?);
+                options.output_explicit = true;
+            } else if argument == OsStr::new("--dump-dom") {
+                options.dom_url = Some(
+                    next_value(&mut arguments, "--dump-dom")?
+                        .into_string()
+                        .map_err(|_| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidInput,
+                                "--dump-dom URL must be valid UTF-8",
+                            )
+                        })?,
+                );
             } else if argument == OsStr::new("--width") {
                 options.width = parse_dimension(next_value(&mut arguments, "--width")?, "width")?;
             } else if argument == OsStr::new("--height") {
@@ -44,6 +60,15 @@ impl Options {
                     parse_dimension(next_value(&mut arguments, "--height")?, "height")?;
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--output=") {
                 options.output = PathBuf::from(value);
+                options.output_explicit = true;
+            } else if let Some(value) = argument.to_string_lossy().strip_prefix("--dump-dom=") {
+                if value.is_empty() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "--dump-dom requires a URL",
+                    ));
+                }
+                options.dom_url = Some(value.to_owned());
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--width=") {
                 options.width = parse_dimension(OsString::from(value), "width")?;
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--height=") {
@@ -73,9 +98,9 @@ pub fn write_output(path: &Path, png: &[u8]) -> io::Result<()> {
 pub fn print_help() {
     println!(
         "{name} {version}\n\n\
-         Render the deterministic MeowEngine W3 reference scene.\n\n\
-         Usage:\n  {name} [--output PATH] [--width PIXELS] [--height PIXELS]\n\n\
-         Options:\n  --output PATH    Output PNG path [default: {default_output}]\n  --width PIXELS   Framebuffer width [default: {default_width}]\n  --height PIXELS  Framebuffer height [default: {default_height}]\n  -h, --help       Print this help\n",
+         Render the reference scene or load a URL and dump its DOM.\n\n\
+         Usage:\n  {name} [--output PATH] [--width PIXELS] [--height PIXELS]\n  {name} --dump-dom URL [--output PATH]\n\n\
+         Options:\n  --dump-dom URL   Load HTTP(S)/about:blank and emit a deterministic DOM dump\n  --output PATH    Output PNG or DOM path [default PNG: {default_output}]\n  --width PIXELS   Framebuffer width [default: {default_width}]\n  --height PIXELS  Framebuffer height [default: {default_height}]\n  -h, --help       Print this help\n",
         name = env!("CARGO_PKG_NAME"),
         version = env!("CARGO_PKG_VERSION"),
         default_output = DEFAULT_OUTPUT,
@@ -138,7 +163,21 @@ mod tests {
         assert_eq!(options.output, PathBuf::from("artifacts/frame.png"));
         assert_eq!(options.width, 320);
         assert_eq!(options.height, 200);
+        assert!(options.output_explicit);
+        assert!(options.dom_url.is_none());
         assert!(!options.help);
+    }
+
+    #[test]
+    fn parses_dom_dump_mode() {
+        let options = Options::parse([
+            OsString::from("--dump-dom"),
+            OsString::from("https://example.test/"),
+        ])
+        .expect("DOM options should parse");
+
+        assert_eq!(options.dom_url.as_deref(), Some("https://example.test/"));
+        assert!(!options.output_explicit);
     }
 
     #[test]

@@ -1,5 +1,5 @@
 [package]
-name = "meow-headless"
+name = "meow-html"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,6 +10,5 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
-meow-embedder-api = { path = "../../crates/embedder-api" }
-meow-renderer = { path = "../../crates/renderer" }
-tokio.workspace = true
+encoding_rs.workspace = true
+html5ever.workspace = true

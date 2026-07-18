@@ -37,19 +37,49 @@ impl Frame {
     }
 }
 
-/// Browser-facing owner of the internal engine coordinator.
-#[derive(Debug, Default)]
+pub use meow_engine::{
+    BrowserUrl, CancellationToken, CharsetSource, DocumentState, HistoryEntry, NavigationError,
+};
+
+/// Browser-facing owner of frame and navigation coordinators.
+#[derive(Debug)]
 pub struct BrowserEngine {
     engine: meow_engine::Engine,
+    navigator: meow_engine::Navigator,
 }
 
 impl BrowserEngine {
     /// Creates a browser-engine boundary object.
     #[must_use]
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             engine: meow_engine::Engine::new(),
+            navigator: meow_engine::Navigator::default(),
         }
+    }
+
+    /// Returns the current committed top-level document.
+    #[must_use]
+    pub fn current_document(&self) -> &DocumentState {
+        self.navigator.current()
+    }
+
+    /// Returns the current session-history entries.
+    #[must_use]
+    pub fn history(&self) -> &[HistoryEntry] {
+        self.navigator.history()
+    }
+
+    /// Performs and commits a top-level navigation.
+    pub async fn navigate(
+        &mut self,
+        input: &str,
+        cancellation: &CancellationToken,
+    ) -> Result<&DocumentState, EmbedderError> {
+        self.navigator
+            .navigate(input, cancellation)
+            .await
+            .map_err(EmbedderError::from)
     }
 
     /// Requests a resolved frame for physical pixel dimensions.
@@ -71,25 +101,48 @@ impl BrowserEngine {
     }
 }
 
+impl Default for BrowserEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Error exposed across the browser-shell/engine boundary.
 #[derive(Debug)]
-pub struct EmbedderError(DisplayListError);
+pub enum EmbedderError {
+    /// Display-list construction failed.
+    DisplayList(DisplayListError),
+    /// Top-level navigation failed before commit.
+    Navigation(NavigationError),
+}
 
 impl fmt::Display for EmbedderError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(formatter)
+        match self {
+            Self::DisplayList(error) => error.fmt(formatter),
+            Self::Navigation(error) => error.fmt(formatter),
+        }
     }
 }
 
 impl Error for EmbedderError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        Some(&self.0)
+        match self {
+            Self::DisplayList(error) => Some(error),
+            Self::Navigation(error) => Some(error),
+        }
     }
 }
 
 impl From<DisplayListError> for EmbedderError {
     fn from(error: DisplayListError) -> Self {
-        Self(error)
+        Self::DisplayList(error)
+    }
+}
+
+impl From<NavigationError> for EmbedderError {
+    fn from(error: NavigationError) -> Self {
+        Self::Navigation(error)
     }
 }
 

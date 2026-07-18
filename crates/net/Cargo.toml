@@ -1,5 +1,5 @@
 [package]
-name = "meow-engine"
+name = "meow-net"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,12 +10,11 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
-encoding_rs.workspace = true
-meow-display-list = { path = "../display-list" }
-meow-html = { path = "../html" }
-meow-net = { path = "../net" }
+bytes.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+hyper.workspace = true
+hyper-rustls.workspace = true
+hyper-util.workspace = true
 meow-url-policy = { path = "../url-policy" }
-tracing.workspace = true
-
-[dev-dependencies]
 tokio.workspace = true

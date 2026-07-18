@@ -8,8 +8,11 @@ A Linux-first browser engine and browser shell written in Rust.
 - `apps/meow-headless`: deterministic headless entry point
 - `crates/display-list`: backend-neutral paint commands
 - `crates/embedder-api`: browser-shell/engine boundary
-- `crates/engine`: top-level frame orchestration
+- `crates/engine`: top-level frame and navigation orchestration
+- `crates/html`: html5ever TreeSink, generational DOM arena, streaming decode
+- `crates/net`: Tokio/Hyper/Rustls HTTP(S) loader
 - `crates/renderer`: tiny-skia CPU and Vello/wgpu GPU backends
+- `crates/url-policy`: canonical URL, origin, and reference resolution
 - `tools/xtask`: repository automation
 
 ## Development
@@ -66,13 +69,25 @@ cargo run --locked -p meow-headless -- \
 The headless app requests a display list through the embedder API, rasterizes it
 with the reference renderer, and writes deterministic PNG bytes.
 
+Load an HTTP(S) URL through Tokio, Hyper, and Rustls, then print the committed DOM:
+
+```bash
+cargo run --locked -p meow-headless -- --dump-dom https://example.com/
+```
+
+Write the DOM dump to a file by adding `--output artifacts/example.dom.txt`.
+The same path supports `about:blank`, redirect metadata, byte limits, timeouts,
+cancellation, charset sniffing, `<base>` resolution, and a committed history entry.
+
 ## Documentation
 
 - [Bootstrap guide](docs/bootstrap.md)
 - [W2 window lifecycle](docs/w2-window-lifecycle.md)
 - [W3 reference renderer](docs/w3-reference-renderer.md)
 - [W4 GPU skeleton and embedder API](docs/w4-gpu-and-embedder.md)
+- [W5-W8 loading, HTML, and navigation](docs/w5-w8-loading-html-navigation.md)
 - [Current limitations](docs/limitations.md)
 - [ADR template](docs/adr/0000-template.md)
 - [ADR 0001: Bootstrap workspace and tooling](docs/adr/0001-bootstrap-workspace-and-tooling.md)
 - [ADR 0002: Display-list, renderer, and embedder boundaries](docs/adr/0002-display-list-renderer-and-embedder-boundaries.md)
+- [ADR 0003: URL, network, HTML, and navigation boundaries](docs/adr/0003-loading-and-navigation-boundaries.md)
