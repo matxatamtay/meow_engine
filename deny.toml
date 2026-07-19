@@ -1,0 +1,73 @@
+# MeowEngine dependency policy. Keep this file in sync with
+# docs/y2-w2-supply-chain-and-v8-provenance.md.
+
+[graph]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+]
+all-features = true
+
+[output]
+feature-depth = 1
+
+[advisories]
+db-urls = ["https://github.com/RustSec/advisory-db"]
+yanked = "deny"
+unmaintained = "workspace"
+unused-ignored-advisory = "deny"
+ignore = [
+    { id = "RUSTSEC-2026-0194", reason = "quick-xml 0.39.4 is only executed inside the wayland-scanner proc macro over dependency-owned protocol XML; current wayland-scanner 0.31.10 cannot select fixed quick-xml 0.41 yet." },
+    { id = "RUSTSEC-2026-0195", reason = "quick-xml 0.39.4 is only executed inside the wayland-scanner proc macro over dependency-owned protocol XML; current wayland-scanner 0.31.10 cannot select fixed quick-xml 0.41 yet." },
+]
+
+[licenses]
+confidence-threshold = 0.93
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "CC0-1.0",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+exceptions = []
+
+[licenses.private]
+ignore = false
+registries = []
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+allow = []
+allow-workspace = true
+deny = [
+    { crate = "openssl", reason = "MeowEngine uses rustls; native OpenSSL silently changes runtime and packaging provenance." },
+    { crate = "native-tls", reason = "TLS must remain on the pinned rustls path." },
+]
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
+
+[sources.allow-org]
+github = []
+gitlab = []
+bitbucket = []

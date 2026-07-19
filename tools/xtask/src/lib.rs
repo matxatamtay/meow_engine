@@ -21,7 +21,14 @@ pub fn run(args: impl IntoIterator<Item = String>) -> ExitCode {
         [command, rest @ ..]
             if matches!(
                 command.as_str(),
-                "wpt" | "fuzz" | "budgets" | "package" | "diagnostics" | "release-check"
+                "wpt"
+                    | "fuzz"
+                    | "budgets"
+                    | "package"
+                    | "diagnostics"
+                    | "release-check"
+                    | "supply-chain"
+                    | "v8-verify"
             ) =>
         {
             release::run(command, rest)
@@ -36,6 +43,6 @@ pub fn run(args: impl IntoIterator<Item = String>) -> ExitCode {
 
 fn print_usage() {
     println!(
-        "MeowEngine repository tasks\n\nusage:\n  cargo xtask doctor\n  cargo xtask dev [options]"
+        "MeowEngine repository tasks\n\nusage:\n  cargo xtask doctor\n  cargo xtask dev [options]\n  cargo xtask supply-chain <validate|update|check>\n  cargo xtask v8-verify [--target <triple>|--all-targets]"
     );
 }

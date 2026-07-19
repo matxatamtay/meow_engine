@@ -1,16 +1,19 @@
-use std::process::{Command, ExitCode};
+use std::{
+    path::Path,
+    process::{Command, ExitCode},
+};
 
 pub fn run(command: &str, arguments: &[String]) -> ExitCode {
     let status = match command {
-        "wpt" => Command::new("cargo")
+        "wpt" => workspace_command("cargo")
             .args(["run", "-p", "meow-wpt", "--"])
             .args(arguments)
             .status(),
-        "fuzz" => Command::new("cargo")
+        "fuzz" => workspace_command("cargo")
             .args(["run", "-p", "meow-fuzz", "--"])
             .args(arguments)
             .status(),
-        "budgets" => Command::new("cargo")
+        "budgets" => workspace_command("cargo")
             .args(["run", "-p", "meow-bench", "--release", "--"])
             .args(arguments)
             .status(),
@@ -20,11 +23,19 @@ pub fn run(command: &str, arguments: &[String]) -> ExitCode {
             } else {
                 command
             };
-            Command::new("python3")
+            workspace_command("python3")
                 .args(["scripts/release.py", script_command])
                 .args(arguments)
                 .status()
         }
+        "supply-chain" => workspace_command("python3")
+            .arg("scripts/supply_chain.py")
+            .args(arguments)
+            .status(),
+        "v8-verify" => workspace_command("python3")
+            .args(["scripts/supply_chain.py", "verify-v8"])
+            .args(arguments)
+            .status(),
         _ => unreachable!("known release command"),
     };
     match status {
@@ -35,4 +46,10 @@ pub fn run(command: &str, arguments: &[String]) -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+fn workspace_command(program: &str) -> Command {
+    let mut command = Command::new(program);
+    command.current_dir(Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."));
+    command
 }

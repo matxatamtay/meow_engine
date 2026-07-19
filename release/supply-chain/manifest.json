@@ -1,0 +1,28 @@
+{
+  "cargo_lock_sha256": "7c21cf6a9821bf05b2ba759375712486a5c75557c0fd1a6d36d8d94805ed6a4e",
+  "deny_config_sha256": "f8d1b356b6917038e871849dcab1f94e0c8cb5bc2e3e8e15c98258d75c411506",
+  "reports": [
+    {
+      "bytes": 633328,
+      "path": "dependencies.json",
+      "sha256": "55c7bffe0ad576f794b5a0893aca49d3bf3661cd66873128067f322a4fa5d9c0"
+    },
+    {
+      "bytes": 269923,
+      "path": "licenses.json",
+      "sha256": "d87a32b0b042c2dfc1fb7bcb2c1559f483a5371ee2bbe126f414c7e391cb5aa2"
+    },
+    {
+      "bytes": 741484,
+      "path": "sbom.spdx.json",
+      "sha256": "59f3b4c7523f2eb2a030de79054999ad37a49ef387b5aeb5cd00094904b00f8d"
+    },
+    {
+      "bytes": 3018,
+      "path": "v8-provenance.json",
+      "sha256": "db15452483fecc15b268d4ccd1a295e4d77550803d69f2421a7b84df579a4bb8"
+    }
+  ],
+  "schema_version": 1,
+  "v8_manifest_sha256": "d9ac820baa82447704cc6dd7cbe0d54fee3d8389282e07f9c0a737e51afbc819"
+}

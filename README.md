@@ -34,7 +34,29 @@ bash scripts/verify.sh
 ```
 
 The doctor checks bootstrap health. The verification script is the canonical
-format, Clippy, test, and doctor gate used by CI.
+format, Clippy, test, supply-chain drift, and doctor gate used by CI.
+
+## Supply chain and V8 provenance
+
+Rust dependencies are checked by the pinned cargo-deny policy. Deterministic
+SPDX SBOM, license, dependency, and V8 provenance reports live in
+`release/supply-chain/`. V8 is not integrated as a runtime backend yet; its
+binding commit, engine-source commit, static archives, license evidence,
+checksums, and immutable cache keys are pinned ahead of Y2-W3/Y2-W4.
+
+```bash
+cargo install --locked cargo-deny --version 0.19.7
+cargo deny --locked check
+cargo xtask supply-chain validate
+cargo xtask supply-chain check
+cargo xtask v8-verify --target x86_64-unknown-linux-gnu
+```
+
+The last command is the explicit networked tag, submodule, archive, and license check. Normal validation and CI report
+comparison remain network-free. Two current quick-xml advisories are narrowly
+reviewed exceptions because the affected parser is used only by the
+wayland-scanner proc macro over dependency-owned protocol XML; stale exceptions
+are denied automatically.
 
 Run an instrumented development browser process with live logs and a persistent
 session log:
@@ -263,6 +285,7 @@ cargo run --locked -p meow-headless -- --dump-css https://example.com/
 - [W50 release budgets](docs/w50-release-budgets.md)
 - [W51 release candidate](docs/w51-release-candidate.md)
 - [W52 public alpha](docs/w52-public-alpha.md)
+- [Y2-W2 supply chain and V8 provenance](docs/y2-w2-supply-chain-and-v8-provenance.md)
 - [Privacy defaults](docs/privacy.md)
 - [Threat model](docs/threat-model.md)
 - [Known issues](docs/known-issues.md)

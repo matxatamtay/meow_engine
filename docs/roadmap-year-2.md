@@ -1,5 +1,13 @@
 # Roadmap year 2
 
+## Foundation sequence
+
+- **Y2-W2:** cargo-deny, deterministic SBOM/license reports, and an immutable V8 binding/source/archive provenance policy.
+- **Y2-W3:** backend-neutral `JsRuntime` boundary with V8 default and Boa fallback/reference.
+- **Y2-W4:** V8 isolate spike inside the content child with reproducible-enough Linux packaging and crash containment.
+
+The public release/tag operation is intentionally external to this sequence.
+
 ## Q1: conformance and platform depth
 
 Expand upstream WPT ingestion, CSS/layout, HTML edge cases, modules, streams,

@@ -1,0 +1,78 @@
+{
+  "artifacts": [
+    {
+      "cache_key": "rusty-v8/v150.2.0/release/x86_64-unknown-linux-gnu/9a285291ebe827d5/librusty_v8_release_x86_64-unknown-linux-gnu.a.gz",
+      "filename": "librusty_v8_release_x86_64-unknown-linux-gnu.a.gz",
+      "profile": "release",
+      "sha256": "9a285291ebe827d5216c1f9c6de2307b6c07bc346649eb7d3f8b46b2c25141c0",
+      "size_bytes": 38813618,
+      "target": "x86_64-unknown-linux-gnu",
+      "url": "https://github.com/denoland/rusty_v8/releases/download/v150.2.0/librusty_v8_release_x86_64-unknown-linux-gnu.a.gz"
+    },
+    {
+      "cache_key": "rusty-v8/v150.2.0/release/aarch64-unknown-linux-gnu/9ff8418faefdf88c/librusty_v8_release_aarch64-unknown-linux-gnu.a.gz",
+      "filename": "librusty_v8_release_aarch64-unknown-linux-gnu.a.gz",
+      "profile": "release",
+      "sha256": "9ff8418faefdf88cffb16675183c80c385acd1895a7fb638c1e38f1dae8ac811",
+      "size_bytes": 37580575,
+      "target": "aarch64-unknown-linux-gnu",
+      "url": "https://github.com/denoland/rusty_v8/releases/download/v150.2.0/librusty_v8_release_aarch64-unknown-linux-gnu.a.gz"
+    }
+  ],
+  "binding": {
+    "crate": "v8",
+    "license": "MIT",
+    "repository": "https://github.com/denoland/rusty_v8",
+    "revision": "d305e6afa7736f6e298c30ae6646f7709ee9382b",
+    "tag": "v150.2.0",
+    "version": "150.2.0"
+  },
+  "build_policy": {
+    "archive_override_env": "RUSTY_V8_ARCHIVE",
+    "default_mode": "prebuilt-static",
+    "mirror_env": "RUSTY_V8_MIRROR",
+    "network_during_release_build": "deny",
+    "source_fallback_env": "V8_FROM_SOURCE=1",
+    "source_fallback_requires_new_checksum": true
+  },
+  "cache_policy": {
+    "default_root": ".cache/meowengine/v8",
+    "environment_variable": "MEOW_V8_CACHE_DIR",
+    "immutable": true,
+    "key_algorithm": "sha256",
+    "on_checksum_mismatch": "delete-and-fail"
+  },
+  "engine_source": {
+    "license": "BSD-3-Clause",
+    "repository": "https://github.com/denoland/v8.git",
+    "revision": "ac1e23989121713ca642f6650b34deff7b686896",
+    "upstream_repository": "https://chromium.googlesource.com/v8/v8",
+    "version": "15.0.245.2"
+  },
+  "license_evidence": [
+    {
+      "component": "rusty_v8",
+      "expression": "MIT",
+      "sha256": "1c6356fb751d45f0c53093ebf8a7f5e580e802f51999178e19d60f3ec39e147d",
+      "url": "https://raw.githubusercontent.com/denoland/rusty_v8/d305e6afa7736f6e298c30ae6646f7709ee9382b/LICENSE"
+    },
+    {
+      "component": "v8",
+      "expression": "BSD-3-Clause",
+      "sha256": "6ab33af8774a0f396ee3aeeb761e3229057682d6f9fa7f572e390c2cb3a6e509",
+      "url": "https://raw.githubusercontent.com/denoland/v8/ac1e23989121713ca642f6650b34deff7b686896/LICENSE"
+    }
+  ],
+  "manifest_path": "vendor/v8/provenance.json",
+  "manifest_sha256": "d9ac820baa82447704cc6dd7cbe0d54fee3d8389282e07f9c0a737e51afbc819",
+  "policy": {
+    "mutable_references": "deny",
+    "network_default": "deny",
+    "status": "pinned"
+  },
+  "schema_version": 1,
+  "validation": {
+    "network_used": false,
+    "status": "pass"
+  }
+}

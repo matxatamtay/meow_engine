@@ -1,0 +1,54 @@
+name: Supply chain
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      verify_v8_archive:
+        description: Download and verify the pinned Linux x86_64 V8 archive and license evidence
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-chain-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_DENY_VERSION: 0.19.7
+
+jobs:
+  policy:
+    name: Dependency and provenance policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install pinned Rust toolchain
+        run: rustup show active-toolchain
+
+      - name: Install pinned cargo-deny
+        run: cargo install --locked cargo-deny --version "$CARGO_DENY_VERSION"
+
+      - name: Check advisories, licenses, bans, and sources
+        run: cargo deny --locked check
+
+      - name: Validate V8 provenance and generated reports
+        run: |
+          python3 scripts/supply_chain.py validate
+          python3 scripts/supply_chain.py check
+          python3 -m unittest scripts.test_supply_chain
+
+      - name: Verify remote V8 revisions, archive, and license evidence
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.verify_v8_archive }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/supply_chain.py verify-v8 --target x86_64-unknown-linux-gnu
