@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "release": "v0.2-alpha",
+  "sites": [
+    {"id":"article","file":"article.html","features":["block-layout","text","vietnamese","arabic"]},
+    {"id":"forms","file":"forms.html","features":["forms","accessibility","console"]},
+    {"id":"flex-media","file":"flex-media.html","features":["flexbox","transform","opacity"]},
+    {"id":"scripted","file":"scripted.html","features":["javascript","dom-mutation","timers"]}
+  ]
+}

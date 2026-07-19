@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "seed": 84960079192103,
+  "duration_seconds": 2,
+  "requested_iterations_per_target": 2000,
+  "total_iterations": 10000,
+  "elapsed_ms": 32,
+  "sanitizer": "none",
+  "new_crashes": 0,
+  "targets": [
+    {
+      "target": "html",
+      "corpus_entries": 1,
+      "iterations": 2000,
+      "elapsed_ms": 14,
+      "new_crashes": []
+    },
+    {
+      "target": "css",
+      "corpus_entries": 1,
+      "iterations": 2000,
+      "elapsed_ms": 10,
+      "new_crashes": []
+    },
+    {
+      "target": "ipc",
+      "corpus_entries": 1,
+      "iterations": 2000,
+      "elapsed_ms": 0,
+      "new_crashes": []
+    },
+    {
+      "target": "image",
+      "corpus_entries": 1,
+      "iterations": 2000,
+      "elapsed_ms": 1,
+      "new_crashes": []
+    },
+    {
+      "target": "url",
+      "corpus_entries": 1,
+      "iterations": 2000,
+      "elapsed_ms": 5,
+      "new_crashes": []
+    }
+  ]
+}

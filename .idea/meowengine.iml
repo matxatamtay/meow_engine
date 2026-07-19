@@ -16,6 +16,25 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/net/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/renderer/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/url-policy/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/css/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/css/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/css/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/embedder-api/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/engine/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/engine/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/meow-bench/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/meow-browser/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/meow-fuzz/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/meow-wpt/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/apps/meow-wpt/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/accessibility/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/inspector/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ipc/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/net/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/process-model/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/process-model/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/sandbox/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/sandbox/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

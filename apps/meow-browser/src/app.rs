@@ -1,6 +1,6 @@
 use std::{
     error::Error,
-    fmt,
+    fmt, fs,
     num::NonZeroU32,
     sync::Arc,
     time::{Duration, Instant},
@@ -335,7 +335,33 @@ impl BrowserApp {
         }
     }
 
+    fn capture_inspector(&mut self) {
+        let Some((width, height)) = self.viewport_dimensions() else {
+            return;
+        };
+        match self.session.inspector_snapshot(width, height) {
+            Ok(snapshot) => {
+                let path = std::path::Path::new("artifacts/diagnostics/inspector-latest.json");
+                if let Some(parent) = path.parent()
+                    && let Err(error) = fs::create_dir_all(parent)
+                {
+                    tracing::error!(%error, "failed to create inspector output directory");
+                    return;
+                }
+                match snapshot.write_json(path) {
+                    Ok(()) => tracing::info!(path = %path.display(), "inspector snapshot captured"),
+                    Err(error) => tracing::error!(%error, "failed to write inspector snapshot"),
+                }
+            }
+            Err(error) => tracing::error!(%error, "failed to capture inspector snapshot"),
+        }
+    }
+
     fn dispatch_keyboard(&mut self, logical_key: &Key) {
+        if matches!(logical_key, Key::Named(NamedKey::F12)) {
+            self.capture_inspector();
+            return;
+        }
         if self.modifiers.alt_key() {
             match logical_key {
                 Key::Named(NamedKey::ArrowLeft) => self.traverse_history(false),

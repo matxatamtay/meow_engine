@@ -1764,10 +1764,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "meow-browser"
-version = "0.1.0"
+name = "meow-accessibility"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "meow-html",
+ "serde",
+]
+
+[[package]]
+name = "meow-bench"
+version = "0.2.0-alpha.0"
 dependencies = [
  "meow-embedder-api",
+ "meow-net",
+ "meow-url-policy",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "meow-browser"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "meow-embedder-api",
+ "meow-inspector",
  "meow-process-model",
  "meow-renderer",
  "serde_json",
@@ -1780,27 +1801,30 @@ dependencies = [
 
 [[package]]
 name = "meow-css"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "cssparser",
 ]
 
 [[package]]
 name = "meow-display-list"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "meow-embedder-api"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "futures-util",
  "image",
+ "meow-accessibility",
  "meow-display-list",
  "meow-engine",
+ "meow-inspector",
  "meow-renderer",
+ "serde_json",
  "tokio",
  "tokio-tungstenite",
  "tracing",
@@ -1808,7 +1832,7 @@ dependencies = [
 
 [[package]]
 name = "meow-engine"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "base64",
  "boa_engine",
@@ -1817,6 +1841,7 @@ dependencies = [
  "futures-util",
  "http",
  "image",
+ "meow-accessibility",
  "meow-css",
  "meow-display-list",
  "meow-html",
@@ -1833,8 +1858,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "meow-fuzz"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "encoding_rs",
+ "image",
+ "meow-css",
+ "meow-html",
+ "meow-ipc",
+ "meow-url-policy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "meow-headless"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "meow-embedder-api",
  "meow-renderer",
@@ -1843,7 +1882,7 @@ dependencies = [
 
 [[package]]
 name = "meow-html"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "encoding_rs",
  "html5ever",
@@ -1851,8 +1890,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "meow-inspector"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "meow-ipc"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1860,7 +1907,7 @@ dependencies = [
 
 [[package]]
 name = "meow-net"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "bytes",
  "futures-util",
@@ -1870,18 +1917,20 @@ dependencies = [
  "hyper-rustls",
  "hyper-util",
  "meow-url-policy",
+ "serde",
  "tokio",
  "tokio-tungstenite",
 ]
 
 [[package]]
 name = "meow-process-model"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "bytes",
  "http",
  "meow-display-list",
  "meow-embedder-api",
+ "meow-inspector",
  "meow-ipc",
  "meow-net",
  "meow-sandbox",
@@ -1894,7 +1943,7 @@ dependencies = [
 
 [[package]]
 name = "meow-renderer"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "meow-display-list",
  "pollster",
@@ -1905,7 +1954,7 @@ dependencies = [
 
 [[package]]
 name = "meow-sandbox"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "nix",
  "seccompiler",
@@ -1915,9 +1964,24 @@ dependencies = [
 
 [[package]]
 name = "meow-url-policy"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 dependencies = [
  "url",
+]
+
+[[package]]
+name = "meow-wpt"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "meow-accessibility",
+ "meow-css",
+ "meow-display-list",
+ "meow-engine",
+ "meow-html",
+ "meow-renderer",
+ "meow-url-policy",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -4734,7 +4798,7 @@ checksum = "0637d3a5566a82fa5214bae89087bc8c9fb94cd8e8a3c07feb691bb8d9c632db"
 
 [[package]]
 name = "xtask"
-version = "0.1.0"
+version = "0.2.0-alpha.0"
 
 [[package]]
 name = "yoke"

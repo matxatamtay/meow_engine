@@ -87,6 +87,7 @@ pub struct BrowserEngine {
     frame_scheduled: bool,
     view_rebuilds: u64,
     view_cache_hits: u64,
+    console_history: Vec<meow_engine::ConsoleMessage>,
 }
 
 impl BrowserEngine {
@@ -132,6 +133,7 @@ impl BrowserEngine {
             frame_scheduled: false,
             view_rebuilds: 0,
             view_cache_hits: 0,
+            console_history: Vec::new(),
         }
     }
 
@@ -426,7 +428,79 @@ impl BrowserEngine {
     }
 
     pub fn take_console_messages(&mut self) -> Vec<ConsoleMessage> {
-        self.navigator.take_console_messages()
+        let messages = self.navigator.take_console_messages();
+        self.console_history.extend(messages.iter().cloned());
+        if self.console_history.len() > 512 {
+            let excess = self.console_history.len() - 512;
+            self.console_history.drain(..excess);
+        }
+        messages
+    }
+
+    /// Captures DOM, styles, box/layout geometry, network, console, and accessibility state.
+    pub fn inspector_snapshot(
+        &mut self,
+        width: u32,
+        height: u32,
+    ) -> Result<meow_inspector::InspectorSnapshot, EmbedderError> {
+        let viewport = Viewport::new(width, height).map_err(EmbedderError::from)?;
+        let pending_console = self.navigator.take_console_messages();
+        self.console_history.extend(pending_console);
+        if self.console_history.len() > 512 {
+            let excess = self.console_history.len() - 512;
+            self.console_history.drain(..excess);
+        }
+        let document = self.navigator.current();
+        let accessibility = meow_accessibility::AccessibilityTree::build(&document.document);
+        let network_waterfall = self
+            .navigator
+            .network_diagnostics()
+            .into_iter()
+            .map(|entry| meow_inspector::NetworkWaterfallEntry {
+                sequence: entry.sequence,
+                method: entry.method,
+                requested_url: entry.requested_url,
+                final_url: entry.final_url,
+                status: entry.status,
+                transferred_bytes: entry.transferred_bytes,
+                elapsed_ms: entry.elapsed_ms,
+                backend: entry.backend,
+                error: entry.error,
+            })
+            .collect();
+        let console = self
+            .console_history
+            .iter()
+            .map(|entry| meow_inspector::InspectorConsoleEntry {
+                level: format!("{:?}", entry.level).to_ascii_lowercase(),
+                message: entry.message.clone(),
+            })
+            .collect();
+        Ok(meow_inspector::InspectorSnapshot {
+            schema_version: 1,
+            engine_version: engine_version().to_owned(),
+            url: document.url.to_string(),
+            viewport_width: viewport.width,
+            viewport_height: viewport.height,
+            dom_tree: document.document.dump(),
+            computed_style: document.dump_typed_computed_styles(),
+            box_model: document.dump_box_tree(),
+            layout_tree: document.dump_flow_layout(meow_engine::LayoutViewport::new(width, height)),
+            accessibility_tree: serde_json::to_value(accessibility)
+                .expect("accessibility tree is serializable"),
+            network_waterfall,
+            console,
+            stylesheet_errors: document
+                .stylesheet_errors
+                .iter()
+                .map(|error| format!("{:?}: {}", error.href, error.message))
+                .collect(),
+            image_errors: document
+                .image_errors
+                .iter()
+                .map(|error| format!("{}: {}", error.source, error.message))
+                .collect(),
+        })
     }
 
     #[must_use]

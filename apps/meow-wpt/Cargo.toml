@@ -1,0 +1,21 @@
+[package]
+name = "meow-wpt"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+meow-accessibility = { path = "../../crates/accessibility" }
+meow-css = { path = "../../crates/css" }
+meow-display-list = { path = "../../crates/display-list" }
+meow-engine = { path = "../../crates/engine" }
+meow-html = { path = "../../crates/html" }
+meow-renderer = { path = "../../crates/renderer" }
+meow-url-policy = { path = "../../crates/url-policy" }
+serde.workspace = true
+serde_json.workspace = true

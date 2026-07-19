@@ -27,7 +27,7 @@ use super::{
     cancellation::CancellationToken,
     cookie::CookieJar,
     error::NetError,
-    model::{LoadConfig, RedirectHop, Request, Response, ResponseMetadata},
+    model::{LoadConfig, NetworkDiagnostic, RedirectHop, Request, Response, ResponseMetadata},
 };
 
 /// Cloneable loader that either owns the network stack or delegates to a broker.
@@ -35,6 +35,7 @@ use super::{
 pub struct Loader {
     backend: LoaderBackend,
     config: LoadConfig,
+    diagnostics: Arc<Mutex<Vec<NetworkDiagnostic>>>,
 }
 
 #[derive(Clone)]
@@ -68,6 +69,7 @@ impl Loader {
         Self {
             backend: LoaderBackend::Direct(Arc::new(direct)),
             config,
+            diagnostics: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -77,6 +79,7 @@ impl Loader {
         Self {
             backend: LoaderBackend::Brokered(broker),
             config,
+            diagnostics: Arc::new(Mutex::new(Vec::new())),
         }
     }
 
@@ -101,6 +104,23 @@ impl Loader {
         }
     }
 
+    /// Returns a stable copy of the bounded request waterfall.
+    #[must_use]
+    pub fn diagnostics(&self) -> Vec<NetworkDiagnostic> {
+        self.diagnostics
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clone()
+    }
+
+    /// Clears retained request diagnostics.
+    pub fn clear_diagnostics(&self) {
+        self.diagnostics
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clear();
+    }
+
     /// Loads one request without ambient credentials.
     pub async fn load(
         &self,
@@ -121,10 +141,57 @@ impl Loader {
         if cancellation.is_cancelled() {
             return Err(NetError::Cancelled);
         }
-        match &self.backend {
+        let started = Instant::now();
+        let method = request.method.to_string();
+        let requested_url = request.url.to_string();
+        let backend = if self.is_brokered() {
+            "brokered"
+        } else {
+            "direct"
+        }
+        .to_owned();
+        let result = match &self.backend {
             LoaderBackend::Direct(direct) => direct.load(request, context, cancellation).await,
             LoaderBackend::Brokered(broker) => broker.load(request, context, cancellation).await,
+        };
+        let mut diagnostics = self
+            .diagnostics
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        let sequence = diagnostics
+            .last()
+            .map_or(1, |entry| entry.sequence.saturating_add(1));
+        let diagnostic = match &result {
+            Ok(response) => NetworkDiagnostic {
+                sequence,
+                method,
+                requested_url,
+                final_url: Some(response.metadata.final_url.to_string()),
+                status: Some(response.status.as_u16()),
+                transferred_bytes: response.body.len(),
+                elapsed_ms: elapsed_millis(started),
+                backend,
+                error: None,
+            },
+            Err(error) => NetworkDiagnostic {
+                sequence,
+                method,
+                requested_url,
+                final_url: None,
+                status: None,
+                transferred_bytes: 0,
+                elapsed_ms: elapsed_millis(started),
+                backend,
+                error: Some(error.to_string()),
+            },
+        };
+        diagnostics.push(diagnostic);
+        if diagnostics.len() > 512 {
+            let excess = diagnostics.len() - 512;
+            diagnostics.drain(..excess);
         }
+        drop(diagnostics);
+        result
     }
 }
 
@@ -410,4 +477,8 @@ fn rewrite_request_for_redirect(
         request.headers.remove(http::header::CONTENT_TYPE);
     }
     request.url = destination;
+}
+
+fn elapsed_millis(started: Instant) -> u64 {
+    started.elapsed().as_millis().min(u128::from(u64::MAX)) as u64
 }

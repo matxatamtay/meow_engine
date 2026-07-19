@@ -1,0 +1,38 @@
+name: Distribution package smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packaging/**"
+      - "scripts/release.py"
+      - "apps/meow-browser/**"
+      - "apps/meow-headless/**"
+      - ".github/workflows/distro-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: rustup show active-toolchain
+      - run: cargo build --release -p meow-browser -p meow-headless
+      - run: python3 scripts/release.py package --skip-build
+
+  fedora:
+    runs-on: ubuntu-24.04
+    container: fedora:42
+    steps:
+      - name: Bootstrap Fedora
+        run: dnf install -y ca-certificates curl gcc gcc-c++ make git python3 tar gzip
+      - uses: actions/checkout@v6
+      - name: Install rustup and pinned toolchain
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - run: $HOME/.cargo/bin/rustup show active-toolchain
+      - run: $HOME/.cargo/bin/cargo build --release -p meow-browser -p meow-headless
+      - run: python3 scripts/release.py package --skip-build

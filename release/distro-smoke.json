@@ -1,0 +1,24 @@
+{
+  "artifact": "release/dist/meowengine-0.2.0-alpha.0-x86_64.tar.gz",
+  "artifact_sha256": "08a69f7b0f91a8ee916269ca9b3ea635e35d4e1ba7ec09f34e213ea0518bd260",
+  "build_baseline": "ubuntu:24.04",
+  "host": "Linux-7.0.0-27-generic-x86_64-with-glibc2.43",
+  "local_container_runtime": "docker",
+  "results": [
+    {
+      "headless_help": true,
+      "image": "ubuntu:24.04",
+      "multiprocess_crash_recovery": true,
+      "seccomp": true,
+      "status": "pass"
+    },
+    {
+      "headless_help": true,
+      "image": "fedora:42",
+      "multiprocess_crash_recovery": true,
+      "seccomp": true,
+      "status": "pass"
+    }
+  ],
+  "schema_version": 1
+}

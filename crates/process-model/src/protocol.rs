@@ -54,6 +54,10 @@ pub enum ContentRequest {
     },
     Pending,
     SandboxStatus,
+    Inspect {
+        width: u32,
+        height: u32,
+    },
     CrashForTest,
     Stop,
 }
@@ -62,12 +66,27 @@ pub enum ContentRequest {
 #[serde(tag = "result", rename_all = "snake_case")]
 pub enum ContentResponse {
     Ack,
-    Bool { value: bool },
-    Text { value: String },
-    Frame { frame: WireFrame },
-    Interaction { interaction: BrowserInteraction },
-    Pump { report: PumpReport },
-    Sandbox { report: SandboxReport },
+    Bool {
+        value: bool,
+    },
+    Text {
+        value: String,
+    },
+    Frame {
+        frame: WireFrame,
+    },
+    Interaction {
+        interaction: BrowserInteraction,
+    },
+    Pump {
+        report: PumpReport,
+    },
+    Sandbox {
+        report: SandboxReport,
+    },
+    Inspector {
+        snapshot: Box<meow_inspector::InspectorSnapshot>,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

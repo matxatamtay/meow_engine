@@ -104,6 +104,12 @@ impl Navigator {
         self.runtime.take_console_messages()
     }
 
+    /// Returns the loader's bounded network waterfall.
+    #[must_use]
+    pub fn network_diagnostics(&self) -> Vec<meow_net::NetworkDiagnostic> {
+        self.loader.diagnostics()
+    }
+
     pub async fn pump_web_tasks(&mut self, platform: &mut WebPlatform) -> WebTaskReport {
         platform.pump(&mut self.runtime).await
     }

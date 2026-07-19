@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=MeowEngine
+Comment=Experimental Rust browser engine public alpha
+Exec=meow-browser %u
+Icon=meowengine
+Terminal=false
+Categories=Network;WebBrowser;
+MimeType=x-scheme-handler/http;x-scheme-handler/https;text/html;

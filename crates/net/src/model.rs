@@ -5,11 +5,26 @@ use std::time::Duration;
 use bytes::Bytes;
 use http::{HeaderMap, Method, StatusCode, Version, header::ACCEPT};
 use meow_url_policy::BrowserUrl;
+use serde::{Deserialize, Serialize};
 
 /// Default upper bound for a single response body.
 pub const DEFAULT_MAX_RESPONSE_BYTES: usize = 8 * 1024 * 1024;
 /// Default redirect hop limit.
 pub const DEFAULT_MAX_REDIRECTS: usize = 10;
+
+/// One bounded loader diagnostic used by the built-in network waterfall.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NetworkDiagnostic {
+    pub sequence: u64,
+    pub method: String,
+    pub requested_url: String,
+    pub final_url: Option<String>,
+    pub status: Option<u16>,
+    pub transferred_bytes: usize,
+    pub elapsed_ms: u64,
+    pub backend: String,
+    pub error: Option<String>,
+}
 
 /// An owned request model that does not expose Hyper types at engine boundaries.
 #[derive(Clone, Debug)]

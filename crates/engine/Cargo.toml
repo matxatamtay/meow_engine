@@ -10,6 +10,7 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+meow-accessibility = { path = "../accessibility" }
 boa_engine.workspace = true
 resvg.workspace = true
 image.workspace = true

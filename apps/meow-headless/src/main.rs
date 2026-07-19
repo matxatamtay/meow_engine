@@ -14,7 +14,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    let mut engine = BrowserEngine::new();
+    let mut engine = options
+        .profile
+        .as_ref()
+        .map_or_else(BrowserEngine::new, BrowserEngine::new_with_profile);
     if let Some(url) = options.css_url.as_deref() {
         let state = engine.navigate(url, &CancellationToken::new()).await?;
         let dump = state.dump_stylesheets();
@@ -50,7 +53,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    let frame = engine.render_frame(options.width, options.height)?;
+    if let Some(url) = options.url.as_deref() {
+        engine.navigate(url, &CancellationToken::new()).await?;
+    }
+    let frame = if options.url.is_some() {
+        engine.render_document_frame(options.width, options.height)?
+    } else {
+        engine.render_frame(options.width, options.height)?
+    };
     let framebuffer = ReferenceRenderer::new().render(frame.viewport(), frame.display_list())?;
     let png = framebuffer.encode_png()?;
     write_output(&options.output, &png)?;

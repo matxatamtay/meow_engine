@@ -10,6 +10,9 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+serde_json.workspace = true
+meow-inspector = { path = "../inspector" }
+meow-accessibility = { path = "../accessibility" }
 meow-display-list = { path = "../display-list" }
 meow-engine = { path = "../engine" }
 tracing.workspace = true

@@ -1,0 +1,31 @@
+name: Site compatibility
+description: Report a controlled page that does not render or interact correctly
+title: "[compat] "
+labels: ["compatibility"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: URL or local fixture
+      description: Prefer a reduced fixture. Do not include credentials or private URLs.
+    validations:
+      required: true
+  - type: textarea
+    id: symptoms
+    attributes:
+      label: Symptoms
+      description: Rendering, interaction, network, console, or crash details.
+    validations:
+      required: true
+  - type: textarea
+    id: snapshot
+    attributes:
+      label: Inspector or headless evidence
+      description: Include reviewed F12 excerpts, PNG, DOM/CSS dump, and waterfall entries.
+  - type: checkboxes
+    id: known
+    attributes:
+      label: Known-issue check
+      options:
+        - label: I reviewed docs/known-issues.md and docs/limitations.md.
+          required: true

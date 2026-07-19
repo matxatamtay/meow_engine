@@ -1,0 +1,18 @@
+[package]
+name = "meow-bench"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+meow-embedder-api = { path = "../../crates/embedder-api" }
+meow-net = { path = "../../crates/net" }
+meow-url-policy = { path = "../../crates/url-policy" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true

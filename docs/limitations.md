@@ -1,6 +1,6 @@
 # Current limitations
 
-MeowEngine currently covers the W1-W44 process-alpha path, including HTTP(S)
+MeowEngine currently covers the W1-W52 public-alpha path, including HTTP(S)
 loading, HTML and CSS processing, block/inline/single-line flex layout, transformed opacity
 layers, static raster/SVG images, interaction, persistent classic JavaScript realms,
 Fetch/CORS, storage, WebSocket events, and observable rendering caches. It is not yet a
@@ -80,7 +80,7 @@ complete web platform or a production security boundary.
 - Root scrolling is interactive. Nested overflow nodes are exposed in the scroll tree but do not yet receive independent wheel routing or scrollbars.
 - Hit testing covers links and the supported form-control subset. Selection, drag and drop, hover state, context menus, touch gestures, pointer capture, and PointerEvent/MouseEvent-specific fields are not implemented.
 - Keyboard text input uses winit logical keys. IME composition, clipboard editing, selection ranges, undo, and platform accessibility integration are not implemented.
-- Focus order is DOM order for supported controls. `tabindex`, focus delegation, autofocus, focus-visible heuristics, and accessibility-tree semantics are not implemented.
+- Focus order uses the selected accessibility model and supports inherent controls plus positive/zero/negative `tabindex`. Focus delegation, autofocus, focus-visible heuristics, platform accessibility bridges, and complete accessibility semantics are not implemented.
 - Forms support GET submission for text/search, hidden, checkbox, and button controls plus a required-field validation subset and cancelable `submit`. POST, full constraint validation, radio-group semantics, select, textarea editing, file input, reset, labels, autocomplete, and multipart encoding are not implemented.
 - The desktop shell performs synchronous IPC waits on the event-loop thread. Network I/O is
   owned by a separate process, but a slow navigation can still leave the window unresponsive
@@ -162,3 +162,27 @@ complete web platform or a production security boundary.
   are absent.
 - `FileAccessBroker` is a canonical-root, read-only primitive with a byte cap. Top-level `file:`
   navigation and a content-visible brokered file protocol are not implemented.
+
+
+## W45-W52 conformance, diagnostics, and release limits
+
+- The WPT baseline contains 20 reviewed offline cases, not a complete upstream
+  checkout or continuous synchronization.
+- Accessibility is a selected roles/names/focus subset with no AT-SPI/UIA/AX
+  platform bridge.
+- The inspector is a bounded JSON snapshot, not a live dock, debugger, editor,
+  timeline, or request replay tool.
+- Network and console diagnostics retain at most 512 entries and can contain
+  sensitive page data.
+- Profile migration handles the current legacy layout and corrupt manifest; it
+  is not a general transactional migration framework.
+- AppImage requires external `appimagetool`; tar/AppDir is canonical. macOS and
+  Windows packaging are unsupported.
+- Mutation fuzzing has no coverage feedback, distributed corpus, differential
+  oracle, or continuous OSS-Fuzz integration.
+- Release budgets are synthetic local regression guards, not guarantees for
+  every device, network, compositor, or page.
+- The curated RC corpus contains four controlled pages and does not imply broad
+  compatibility with current public sites.
+- Tagging is intentionally manual after a clean committed tree and regenerated
+  artifacts.

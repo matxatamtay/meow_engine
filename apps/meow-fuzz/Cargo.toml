@@ -1,0 +1,20 @@
+[package]
+name = "meow-fuzz"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+encoding_rs.workspace = true
+image.workspace = true
+meow-css = { path = "../../crates/css" }
+meow-html = { path = "../../crates/html" }
+meow-ipc = { path = "../../crates/ipc" }
+meow-url-policy = { path = "../../crates/url-policy" }
+serde.workspace = true
+serde_json.workspace = true

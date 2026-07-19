@@ -12,6 +12,7 @@ workspace = true
 [dependencies]
 meow-embedder-api = { path = "../../crates/embedder-api" }
 meow-process-model = { path = "../../crates/process-model" }
+meow-inspector = { path = "../../crates/inspector" }
 meow-renderer = { path = "../../crates/renderer" }
 serde_json.workspace = true
 softbuffer.workspace = true

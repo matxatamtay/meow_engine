@@ -1,0 +1,37 @@
+{
+  "appdir": "release/dist/MeowEngine-0.2.0-alpha.0-x86_64.AppDir",
+  "appimage": null,
+  "appimage_status": "skipped: appimagetool not installed",
+  "arch": "x86_64",
+  "artifacts": [
+    {
+      "bytes": 21171702,
+      "path": "release/dist/meowengine-0.2.0-alpha.0-x86_64.tar.gz",
+      "sha256": "08a69f7b0f91a8ee916269ca9b3ea635e35d4e1ba7ec09f34e213ea0518bd260"
+    },
+    {
+      "bytes": 365470,
+      "path": "release/dist/meowengine-0.2.0-alpha.0-source.tar.gz",
+      "sha256": "1b3fb5b772d44a55ed31e17d7dfb5a3f59e19321748f6009bd0fe907be30d00b"
+    },
+    {
+      "bytes": 4822,
+      "path": "release/dist/meowengine-diagnostics.tar.gz",
+      "sha256": "861a6b02dec764c6e1dae856ba3cf483bed919a730b3fd368852b086dbb23dbd"
+    }
+  ],
+  "build_baseline": "ubuntu:24.04",
+  "evidence": [
+    "tests/wpt/baseline.json",
+    "release/wpt/report.json",
+    "release/fuzz-report.json",
+    "release/budget-report.json",
+    "release/distro-smoke.json"
+  ],
+  "release": "v0.2.0-alpha.0",
+  "schema_version": 1,
+  "smoke_tests": [
+    "meow-headless --help",
+    "meow-browser --process-smoke-test"
+  ]
+}

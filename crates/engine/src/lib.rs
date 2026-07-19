@@ -11,6 +11,7 @@ mod layout;
 mod model;
 mod navigator;
 mod paint;
+mod profile;
 mod script;
 mod storage;
 mod style;
@@ -103,5 +104,8 @@ pub const fn version() -> &'static str {
 #[cfg(test)]
 mod tests;
 
+pub use profile::{
+    PROFILE_SCHEMA_VERSION, ProfileError, ProfileManifest, ProfileMigrationReport, prepare_profile,
+};
 pub use storage::{DEFAULT_STORAGE_QUOTA_BYTES, StorageManager};
 pub use web::{WebPlatform, WebTaskReport};

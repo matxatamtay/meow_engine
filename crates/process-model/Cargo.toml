@@ -15,6 +15,7 @@ http.workspace = true
 meow-display-list = { path = "../display-list" }
 meow-embedder-api = { path = "../embedder-api" }
 meow-ipc = { path = "../ipc" }
+meow-inspector = { path = "../inspector" }
 meow-net = { path = "../net" }
 meow-sandbox = { path = "../sandbox" }
 meow-url-policy = { path = "../url-policy" }

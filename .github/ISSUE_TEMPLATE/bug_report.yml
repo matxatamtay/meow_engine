@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible engine, browser, headless, or packaging defect
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "MeowEngine is experimental. Remove private data from diagnostics before attaching it."
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.2-alpha or commit hash
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options: [Browser shell, Headless, HTML/DOM, CSS/layout, JavaScript, Network, Sandbox/process, Accessibility, Inspector, Packaging]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include commands, a local fixture, and expected/actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Distribution, kernel, display backend, renderer, and Rust version.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste relevant logs or attach a reviewed diagnostics bundle.

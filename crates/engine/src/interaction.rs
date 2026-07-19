@@ -6,6 +6,7 @@ use std::{
     time::Instant,
 };
 
+use meow_accessibility::focus_order as accessibility_focus_order;
 use meow_display_list::{DisplayList, DisplayListError, Rgba8, Viewport};
 use meow_html::{Document, NodeHandle, NodeId};
 use meow_url_policy::BrowserUrl;
@@ -476,6 +477,14 @@ impl DocumentView {
             }
         }
 
+        let accessible_order = accessibility_focus_order(&state.document);
+        focus_chain.sort_by_key(|node| {
+            accessible_order
+                .iter()
+                .position(|candidate| candidate == node)
+                .unwrap_or(usize::MAX)
+        });
+        focus_chain.retain(|node| accessible_order.contains(node));
         arrange_control_targets(&mut targets, viewport);
         let hit_tests = HitTestList {
             entries: targets

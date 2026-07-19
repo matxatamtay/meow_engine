@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "manifest_digest": "fnv1a64:890dd1fe0b3576c0",
+  "results": [
+    {
+      "id": "a11y-hidden-subtree",
+      "status": "pass"
+    },
+    {
+      "id": "a11y-implicit-roles-and-names",
+      "status": "pass"
+    },
+    {
+      "id": "a11y-labelled-controls",
+      "status": "pass"
+    },
+    {
+      "id": "cascade-important",
+      "status": "pass"
+    },
+    {
+      "id": "cascade-inheritance",
+      "status": "pass"
+    },
+    {
+      "id": "cascade-specificity",
+      "status": "pass"
+    },
+    {
+      "id": "cascade-unset-non-inherited",
+      "status": "pass"
+    },
+    {
+      "id": "html-adoption-agency",
+      "status": "pass"
+    },
+    {
+      "id": "html-implied-document-elements",
+      "status": "pass"
+    },
+    {
+      "id": "html-table-foster-parenting",
+      "status": "pass"
+    },
+    {
+      "id": "html-template-contents",
+      "status": "pass"
+    },
+    {
+      "id": "keyboard-disabled-hidden-skip",
+      "status": "pass"
+    },
+    {
+      "id": "keyboard-tabindex-order",
+      "status": "pass"
+    },
+    {
+      "id": "layout-flex-grow-equivalence",
+      "status": "pass"
+    },
+    {
+      "id": "layout-margin-shorthand-equivalence",
+      "status": "pass"
+    },
+    {
+      "id": "layout-width-equivalence",
+      "status": "pass"
+    },
+    {
+      "id": "selectors-attribute-operators",
+      "status": "pass"
+    },
+    {
+      "id": "selectors-combinators",
+      "status": "pass"
+    },
+    {
+      "id": "selectors-id-class-type",
+      "status": "pass"
+    },
+    {
+      "id": "selectors-structural-pseudo",
+      "status": "pass"
+    }
+  ]
+}

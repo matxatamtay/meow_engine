@@ -1,0 +1,208 @@
+{
+  "pass_rate_target": 0.95,
+  "cases": [
+    {
+      "id": "html-implied-document-elements",
+      "suite": "html",
+      "upstream": "html/syntax/parsing/document-write.html selected tree-builder invariant",
+      "kind": "html_dump",
+      "source": "<title>Cat</title><p>Meow",
+      "contains": ["<html>", "<head>", "<title>", "<body>", "<p>"]
+    },
+    {
+      "id": "html-table-foster-parenting",
+      "suite": "html",
+      "upstream": "html/syntax/parsing/table-voodoo.html selected foster-parenting case",
+      "kind": "html_dump",
+      "source": "<table>outside<tr><td>inside</table>",
+      "contains": ["\"outside\"", "<table>", "<tbody>", "<tr>", "<td>", "\"inside\""]
+    },
+    {
+      "id": "html-adoption-agency",
+      "suite": "html",
+      "upstream": "html/syntax/parsing/adoption-agency.html selected formatting case",
+      "kind": "html_dump",
+      "source": "<p><b>cat<i>meow</b>tail</i>",
+      "contains": ["<p>", "<b>", "<i>", "\"meow\"", "\"tail\""]
+    },
+    {
+      "id": "html-template-contents",
+      "suite": "html",
+      "upstream": "html/semantics/scripting-1/the-template-element/template-element.html selected parse case",
+      "kind": "html_dump",
+      "source": "<template><section>cat</section></template>",
+      "contains": ["<template>", "#document-fragment", "<section>", "\"cat\""]
+    },
+    {
+      "id": "selectors-id-class-type",
+      "suite": "selectors",
+      "upstream": "selectors/query/query-selector.html selected simple selectors",
+      "kind": "selector",
+      "source": "<main><p id='a' class='cat'>A</p><p id='b'>B</p></main>",
+      "selector": "main > p.cat#a",
+      "expected_ids": ["a"]
+    },
+    {
+      "id": "selectors-attribute-operators",
+      "suite": "selectors",
+      "upstream": "selectors/attribute-selectors.html selected operators",
+      "kind": "selector",
+      "source": "<i id='a' data-v='cat meow'></i><i id='b' data-v='dog'></i>",
+      "selector": "[data-v~='cat'][data-v$='meow']",
+      "expected_ids": ["a"]
+    },
+    {
+      "id": "selectors-combinators",
+      "suite": "selectors",
+      "upstream": "selectors/query/query-selector-all.html selected combinators",
+      "kind": "selector",
+      "source": "<section><h2 id='h'>H</h2><p id='a'>A</p><p id='b'>B</p></section>",
+      "selector": "h2 + p, h2 ~ p:last-child",
+      "expected_ids": ["a", "b"]
+    },
+    {
+      "id": "selectors-structural-pseudo",
+      "suite": "selectors",
+      "upstream": "selectors/nth-child.html selected structural pseudos",
+      "kind": "selector",
+      "source": "<ul><li id='a'></li><li id='b'></li><li id='c'></li><li id='d'></li></ul>",
+      "selector": "li:nth-child(2n)",
+      "expected_ids": ["b", "d"]
+    },
+    {
+      "id": "cascade-specificity",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/specificity.html selected specificity case",
+      "kind": "cascade",
+      "source": "<p id='target' class='cat'>cat</p>",
+      "css": "p { color: red } .cat { color: green } #target { color: blue }",
+      "target": "#target",
+      "property": "color",
+      "expected": "blue"
+    },
+    {
+      "id": "cascade-important",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/important.html selected important case",
+      "kind": "cascade",
+      "source": "<p id='target' class='cat'>cat</p>",
+      "css": "#target { color: blue } .cat { color: red !important }",
+      "target": "#target",
+      "property": "color",
+      "expected": "red"
+    },
+    {
+      "id": "cascade-inheritance",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/inheritance.html selected inherited property",
+      "kind": "cascade",
+      "source": "<main id='parent'><span id='target'>cat</span></main>",
+      "css": "#parent { color: green }",
+      "target": "#target",
+      "property": "color",
+      "expected": "green"
+    },
+    {
+      "id": "cascade-unset-non-inherited",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/unset-value.html selected unset case",
+      "kind": "cascade",
+      "source": "<main style='display:block'><span id='target'>cat</span></main>",
+      "css": "#target { display: unset }",
+      "target": "#target",
+      "property": "display",
+      "expected": "inline"
+    },
+    {
+      "id": "layout-width-equivalence",
+      "suite": "layout",
+      "upstream": "css/CSS2/box-display/width-reftest selected equivalence",
+      "kind": "layout_ref",
+      "test_html": "<main><div>cat</div></main>",
+      "test_css": "main,div{display:block} div{width:100px;height:20px;background:red}",
+      "reference_html": "<main><section>cat</section></main>",
+      "reference_css": "main,section{display:block} section{width:100px;height:20px;background:red}",
+      "width": 240,
+      "height": 100
+    },
+    {
+      "id": "layout-margin-shorthand-equivalence",
+      "suite": "layout",
+      "upstream": "css/CSS2/box-display/margin-reftest selected equivalence",
+      "kind": "layout_ref",
+      "test_html": "<div>cat</div>",
+      "test_css": "div{display:block;width:80px;height:20px;margin:4px 8px;background:blue}",
+      "reference_html": "<div>cat</div>",
+      "reference_css": "div{display:block;width:80px;height:20px;margin-top:4px;margin-right:8px;margin-bottom:4px;margin-left:8px;background:blue}",
+      "width": 240,
+      "height": 100
+    },
+    {
+      "id": "layout-flex-grow-equivalence",
+      "suite": "layout",
+      "upstream": "css/css-flexbox/flex-grow-001.html selected reftest",
+      "kind": "layout_ref",
+      "test_html": "<main><i>A</i><i>B</i></main>",
+      "test_css": "main{display:flex;width:200px}i{display:block;flex:1 1 0;height:20px;background:green}",
+      "reference_html": "<main><i>A</i><i>B</i></main>",
+      "reference_css": "main{display:flex;width:200px}i{display:block;flex-grow:1;flex-shrink:1;flex-basis:0;height:20px;background:green}",
+      "width": 240,
+      "height": 100
+    },
+    {
+      "id": "a11y-implicit-roles-and-names",
+      "suite": "accessibility",
+      "upstream": "wai-aria/role/roles.html and accname/name/comp_label.html selected subset",
+      "kind": "accessibility",
+      "source": "<main id='main'><h1 id='heading'>Cats</h1><a id='link' href='/'>Read cats</a><button id='button'>Save</button></main>",
+      "expectations": [
+        {"id":"main","role":"main","name":"Cats Read cats Save","focusable":false},
+        {"id":"heading","role":"heading","name":"Cats","focusable":false},
+        {"id":"link","role":"link","name":"Read cats","focusable":true},
+        {"id":"button","role":"button","name":"Save","focusable":true}
+      ],
+      "focus_ids": ["link", "button"]
+    },
+    {
+      "id": "a11y-labelled-controls",
+      "suite": "accessibility",
+      "upstream": "accname/name/comp_label.html selected label and aria-labelledby cases",
+      "kind": "accessibility",
+      "source": "<label for='q'>Search cats</label><input id='q'><span id='save-label'>Save cat</span><button id='save' aria-labelledby='save-label'>x</button>",
+      "expectations": [
+        {"id":"q","role":"textbox","name":"Search cats","focusable":true},
+        {"id":"save","role":"button","name":"Save cat","focusable":true}
+      ],
+      "focus_ids": ["q", "save"]
+    },
+    {
+      "id": "a11y-hidden-subtree",
+      "suite": "accessibility",
+      "upstream": "wai-aria/aria-hidden.html selected hidden-tree case",
+      "kind": "accessibility",
+      "source": "<button id='visible'>Visible</button><section aria-hidden='true'><button id='hidden'>Hidden</button></section>",
+      "expectations": [
+        {"id":"visible","role":"button","name":"Visible","focusable":true}
+      ],
+      "focus_ids": ["visible"]
+    },
+    {
+      "id": "keyboard-tabindex-order",
+      "suite": "keyboard",
+      "upstream": "html/interaction/focus/focus-tabindex-order.html selected ordering",
+      "kind": "keyboard_audit",
+      "source": "<button id='normal'>N</button><button id='second' tabindex='2'>B</button><a id='first' href='/' tabindex='1'>A</a><input id='skip' tabindex='-1'>",
+      "focus_ids": ["first", "second", "normal"],
+      "finding_codes": []
+    },
+    {
+      "id": "keyboard-disabled-hidden-skip",
+      "suite": "keyboard",
+      "upstream": "html/interaction/focus/focusable-area.html selected disabled/hidden case",
+      "kind": "keyboard_audit",
+      "source": "<button id='a'>A</button><button id='disabled' disabled>D</button><button id='hidden' hidden>H</button><input id='b' aria-label='B'>",
+      "focus_ids": ["a", "b"],
+      "finding_codes": []
+    }
+  ]
+}

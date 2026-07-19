@@ -41,8 +41,12 @@ impl StorageManager {
 
     #[must_use]
     pub fn persistent(profile_dir: impl Into<PathBuf>) -> Self {
+        let profile_dir = profile_dir.into();
+        if let Err(error) = crate::prepare_profile(&profile_dir) {
+            tracing::warn!(%error, profile = %profile_dir.display(), "profile preparation failed");
+        }
         Self {
-            profile_dir: Some(profile_dir.into()),
+            profile_dir: Some(profile_dir),
             ..Self::ephemeral()
         }
     }

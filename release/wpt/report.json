@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "manifest_digest": "fnv1a64:890dd1fe0b3576c0",
+  "selected_pass_rate_target": 0.95,
+  "summary": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0,
+    "timed_out": 0,
+    "pass_rate": 1.0
+  },
+  "results": [
+    {
+      "id": "a11y-hidden-subtree",
+      "suite": "accessibility",
+      "upstream": "wai-aria/aria-hidden.html selected hidden-tree case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "a11y-implicit-roles-and-names",
+      "suite": "accessibility",
+      "upstream": "wai-aria/role/roles.html and accname/name/comp_label.html selected subset",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "a11y-labelled-controls",
+      "suite": "accessibility",
+      "upstream": "accname/name/comp_label.html selected label and aria-labelledby cases",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "cascade-important",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/important.html selected important case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "cascade-inheritance",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/inheritance.html selected inherited property",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "cascade-specificity",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/specificity.html selected specificity case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "cascade-unset-non-inherited",
+      "suite": "cascade",
+      "upstream": "css/css-cascade/unset-value.html selected unset case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "html-adoption-agency",
+      "suite": "html",
+      "upstream": "html/syntax/parsing/adoption-agency.html selected formatting case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "html-implied-document-elements",
+      "suite": "html",
+      "upstream": "html/syntax/parsing/document-write.html selected tree-builder invariant",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "html-table-foster-parenting",
+      "suite": "html",
+      "upstream": "html/syntax/parsing/table-voodoo.html selected foster-parenting case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "html-template-contents",
+      "suite": "html",
+      "upstream": "html/semantics/scripting-1/the-template-element/template-element.html selected parse case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "keyboard-disabled-hidden-skip",
+      "suite": "keyboard",
+      "upstream": "html/interaction/focus/focusable-area.html selected disabled/hidden case",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "keyboard-tabindex-order",
+      "suite": "keyboard",
+      "upstream": "html/interaction/focus/focus-tabindex-order.html selected ordering",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "layout-flex-grow-equivalence",
+      "suite": "layout",
+      "upstream": "css/css-flexbox/flex-grow-001.html selected reftest",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "layout-margin-shorthand-equivalence",
+      "suite": "layout",
+      "upstream": "css/CSS2/box-display/margin-reftest selected equivalence",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "layout-width-equivalence",
+      "suite": "layout",
+      "upstream": "css/CSS2/box-display/width-reftest selected equivalence",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "selectors-attribute-operators",
+      "suite": "selectors",
+      "upstream": "selectors/attribute-selectors.html selected operators",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "selectors-combinators",
+      "suite": "selectors",
+      "upstream": "selectors/query/query-selector-all.html selected combinators",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "selectors-id-class-type",
+      "suite": "selectors",
+      "upstream": "selectors/query/query-selector.html selected simple selectors",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    },
+    {
+      "id": "selectors-structural-pseudo",
+      "suite": "selectors",
+      "upstream": "selectors/nth-child.html selected structural pseudos",
+      "status": "pass",
+      "duration_ms": 5,
+      "message": null
+    }
+  ]
+}

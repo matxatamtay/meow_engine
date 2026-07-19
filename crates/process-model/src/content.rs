@@ -245,6 +245,13 @@ fn handle_content_request(
         ContentRequest::SandboxStatus => ContentResponse::Sandbox {
             report: sandbox_report.clone(),
         },
+        ContentRequest::Inspect { width, height } => ContentResponse::Inspector {
+            snapshot: Box::new(
+                engine
+                    .inspector_snapshot(width, height)
+                    .map_err(|error| ProcessError::Protocol(error.to_string()))?,
+            ),
+        },
         ContentRequest::CrashForTest => panic!("intentional content crash for containment test"),
         ContentRequest::Stop => return Ok((ContentResponse::Ack, false)),
     };

@@ -243,6 +243,22 @@ impl BrowserSession {
         }
     }
 
+    pub fn inspector_snapshot(
+        &mut self,
+        width: u32,
+        height: u32,
+    ) -> Result<meow_inspector::InspectorSnapshot, String> {
+        match self {
+            Self::Local { engine, .. } => engine
+                .inspector_snapshot(width, height)
+                .map_err(|error| error.to_string()),
+            Self::Remote(supervisor) => supervisor
+                .client_mut()
+                .inspector_snapshot(width, height)
+                .map_err(|error| error.to_string()),
+        }
+    }
+
     pub fn take_console(&mut self) -> Vec<String> {
         match self {
             Self::Local { engine, .. } => take_local_console(engine),

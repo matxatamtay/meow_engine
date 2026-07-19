@@ -1,0 +1,48 @@
+name: Public alpha release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v0.2-alpha*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  SOURCE_DATE_EPOCH: "0"
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install pinned Rust toolchain
+        run: rustup show active-toolchain
+      - name: Full quality gate
+        run: bash scripts/verify.sh
+      - name: Selected WPT baseline
+        run: cargo xtask wpt --check
+      - name: Fixed fuzz campaign
+        run: cargo xtask fuzz --duration-seconds 30 --iterations 100000 --output release/fuzz-report.json
+      - name: Build release binaries
+        run: cargo build --release -p meow-browser -p meow-headless
+      - name: Release budgets
+        run: cargo xtask budgets --browser-bin target/release/meow-browser --headless-bin target/release/meow-headless
+      - name: Curated RC corpus
+        run: cargo test -p meow-headless --test curated_sites
+      - name: Package and diagnostics
+        run: |
+          cargo xtask package --skip-build
+          cargo xtask diagnostics --profile artifacts/release-profile
+          cargo xtask release-check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meowengine-v0.2-alpha
+          path: release/dist/
+      - name: Publish tag release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" release/dist/* --notes-file release/v0.2-alpha/RELEASE_NOTES.md

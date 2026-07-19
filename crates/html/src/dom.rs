@@ -423,6 +423,13 @@ fn dump_node(state: &DomState, handle: &NodeHandle, depth: usize, output: &mut S
     for child in &current.children {
         dump_node(state, child, depth + 1, output);
     }
+    if let NodeKind::Element {
+        template_contents: Some(template_contents),
+        ..
+    } = &current.kind
+    {
+        dump_node(state, template_contents, depth + 1, output);
+    }
 }
 
 pub(super) fn attribute_value(attrs: &[Attribute], local_name: &str) -> Option<String> {

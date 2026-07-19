@@ -174,6 +174,17 @@ impl ContentProcessClient {
         }
     }
 
+    pub fn inspector_snapshot(
+        &mut self,
+        width: u32,
+        height: u32,
+    ) -> Result<meow_inspector::InspectorSnapshot, ProcessError> {
+        match self.request(ContentRequest::Inspect { width, height })? {
+            ContentResponse::Inspector { snapshot } => Ok(*snapshot),
+            response => Err(unexpected_response("inspector snapshot", &response)),
+        }
+    }
+
     pub fn stop(&mut self) -> Result<(), ProcessError> {
         expect_ack(self.request(ContentRequest::Stop)?)
     }

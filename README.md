@@ -1,17 +1,22 @@
 # MeowEngine
 
-A Linux-first browser engine and browser shell written in Rust. The current milestone is **v0.6-process-alpha**, adding versioned IPC, an isolated content process, a network broker, crash containment, and an experimental Linux sandbox to the interactive layout/media foundation.
+A Linux-first browser engine and browser shell written in Rust. The current milestone is **v0.2-alpha**, completing the W1-W52 year-one plan with selected WPT conformance, accessibility basics, a built-in inspector, profile migration, packaging, fuzzing, release budgets, and transparent public-alpha artifacts on top of the process-isolated browser foundation.
 
 ## Workspace
 
 - `apps/meow-browser`: desktop browser shell
-- `apps/meow-headless`: deterministic headless entry point
+- `apps/meow-bench`: automated release-budget collector and gate
+- `apps/meow-fuzz`: deterministic multi-corpus fuzz campaign runner
+- `apps/meow-headless`: deterministic headless renderer, URL capture, and dump entry point
+- `apps/meow-wpt`: selected offline WPT runner, baseline, and triage dashboard
+- `crates/accessibility`: selected roles, names, accessibility tree, focus order, and keyboard audit
 - `crates/css`: CSS Syntax adapter, selectors, typed values, property semantics, declarations, recovery, and stable rule dumps
 - `crates/display-list`: backend-neutral paint commands
 - `crates/embedder-api`: browser-shell/engine boundary
 - `crates/engine`: frame/navigation orchestration, cascade/layout/interaction, and the Boa-backed JavaScript runtime and scheduler
 - `crates/html`: html5ever TreeSink, generational DOM arena, explicit mutation records, traversal, streaming decode, and selector matching/query
 - `crates/ipc`: versioned envelopes, bounded framing, request IDs, and transport abstraction
+- `crates/inspector`: serializable DOM/style/box/network/console snapshots
 - `crates/net`: direct or brokered HTTP(S) loader with network-owned cookies and cache
 - `crates/process-model`: content/network child protocols, supervision, frame submission, and crash recovery
 - `crates/renderer`: tiny-skia CPU and Vello/wgpu GPU backends
@@ -51,6 +56,24 @@ running with:
 tail -f "$(ls -t artifacts/logs/*.log | head -n 1)"
 ```
 
+## Year-one release gates
+
+```bash
+cargo xtask wpt --check
+cargo xtask fuzz --duration-seconds 30 --iterations 100000
+cargo build --release -p meow-browser -p meow-headless
+cargo xtask budgets --browser-bin target/release/meow-browser --headless-bin target/release/meow-headless
+cargo test -p meow-headless --test curated_sites
+cargo xtask package --skip-build
+cargo xtask diagnostics --profile artifacts/release-profile
+cargo xtask release-check
+```
+
+The selected-WPT baseline is 20/20 at 100%. The recorded local fuzz acceptance
+campaign completed 10,000 mutations with zero new crashes. Release budget and
+package checksum reports live under `release/`. AppImage creation is conditional
+on `appimagetool`; the tar/AppDir package is always smoke-tested.
+
 ## Desktop shell
 
 ```bash
@@ -77,6 +100,10 @@ Run the display-free process smoke tests with:
 cargo test -p meow-process-model --test process_smoke
 cargo test -p meow-browser --test multiprocess_smoke
 ```
+
+Press F12 to capture `artifacts/diagnostics/inspector-latest.json` with DOM,
+styles, box/layout, accessibility, network waterfall, console, and resource
+errors.
 
 Browser input includes wheel scrolling, left-click activation, Tab and
 Shift+Tab focus traversal, Enter and Space default actions, Alt+Left/Alt+Right
@@ -158,6 +185,15 @@ cargo run --locked -p meow-headless -- \
 The headless app requests a display list through the embedder API, rasterizes it
 with the reference renderer, and writes deterministic PNG bytes.
 
+Render a URL with an optional versioned profile:
+
+```bash
+cargo run --locked -p meow-headless -- \
+  --profile artifacts/profile \
+  --url https://example.com/ \
+  --output artifacts/example.png
+```
+
 Load an HTTP(S) URL through Tokio, Hyper, and Rustls, then print the committed DOM:
 
 ```bash
@@ -219,6 +255,18 @@ cargo run --locked -p meow-headless -- --dump-css https://example.com/
 - [W42 content process](docs/w42-content-process.md)
 - [W43 network broker](docs/w43-network-broker.md)
 - [W44 experimental Linux sandbox](docs/w44-linux-sandbox.md)
+- [W45 selected WPT sprint 1](docs/w45-wpt-sprint-1.md)
+- [W46 WPT and accessibility](docs/w46-wpt-accessibility.md)
+- [W47 inspector and diagnostics](docs/w47-inspector-diagnostics.md)
+- [W48 packaging and profile migration](docs/w48-packaging-profile.md)
+- [W49 fuzzing marathon](docs/w49-fuzzing-marathon.md)
+- [W50 release budgets](docs/w50-release-budgets.md)
+- [W51 release candidate](docs/w51-release-candidate.md)
+- [W52 public alpha](docs/w52-public-alpha.md)
+- [Privacy defaults](docs/privacy.md)
+- [Threat model](docs/threat-model.md)
+- [Known issues](docs/known-issues.md)
+- [Roadmap year 2](docs/roadmap-year-2.md)
 - [Current limitations](docs/limitations.md)
 - [ADR template](docs/adr/0000-template.md)
 - [ADR 0001: Bootstrap workspace and tooling](docs/adr/0001-bootstrap-workspace-and-tooling.md)

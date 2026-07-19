@@ -1,5 +1,6 @@
 mod dev;
 mod doctor;
+mod release;
 
 use std::process::ExitCode;
 
@@ -17,6 +18,14 @@ pub fn run(args: impl IntoIterator<Item = String>) -> ExitCode {
         }
         [command] if command == "doctor" => doctor::run(),
         [command, rest @ ..] if command == "dev" => dev::run(rest),
+        [command, rest @ ..]
+            if matches!(
+                command.as_str(),
+                "wpt" | "fuzz" | "budgets" | "package" | "diagnostics" | "release-check"
+            ) =>
+        {
+            release::run(command, rest)
+        }
         [command, ..] => {
             eprintln!("unknown xtask command: {command}\n");
             print_usage();

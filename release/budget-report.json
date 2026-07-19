@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "engine_version": "0.2.0-alpha.0",
+  "environment": {
+    "os": "linux",
+    "arch": "x86_64",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cpu_count": 12
+  },
+  "budgets": {
+    "max_startup_ms": 5000,
+    "max_peak_rss_mb": 1024.0,
+    "max_scroll_p95_ms": 100.0,
+    "max_page_load_ms": 5000,
+    "max_binary_total_mb": 500.0,
+    "min_cache_hit_rate": 0.4
+  },
+  "measurements": {
+    "startup_ms": 5,
+    "peak_rss_mb": 22.22265625,
+    "scroll_p95_ms": 1.161,
+    "page_load_ms": 5,
+    "browser_binary_bytes": 40999984,
+    "headless_binary_bytes": 24113320,
+    "binary_total_mb": 62.096885681152344,
+    "cache_hits": 1,
+    "cache_misses": 1,
+    "cache_hit_rate": 0.5
+  },
+  "violations": []
+}

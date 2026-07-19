@@ -14,6 +14,8 @@ pub struct Options {
     pub output_explicit: bool,
     pub width: u32,
     pub height: u32,
+    pub profile: Option<PathBuf>,
+    pub url: Option<String>,
     pub dom_url: Option<String>,
     pub css_url: Option<String>,
     pub help: bool,
@@ -26,6 +28,8 @@ impl Default for Options {
             output_explicit: false,
             width: REFERENCE_WIDTH,
             height: REFERENCE_HEIGHT,
+            profile: None,
+            url: None,
             dom_url: None,
             css_url: None,
             help: false,
@@ -44,6 +48,12 @@ impl Options {
             } else if argument == OsStr::new("--output") {
                 options.output = PathBuf::from(next_value(&mut arguments, "--output")?);
                 options.output_explicit = true;
+            } else if argument == OsStr::new("--profile") {
+                options.profile = Some(PathBuf::from(next_value(&mut arguments, "--profile")?));
+            } else if argument == OsStr::new("--url") {
+                options.url = Some(next_value(&mut arguments, "--url")?.into_string().map_err(
+                    |_| io::Error::new(io::ErrorKind::InvalidInput, "--url must be valid UTF-8"),
+                )?);
             } else if argument == OsStr::new("--dump-dom") {
                 options.dom_url = Some(
                     next_value(&mut arguments, "--dump-dom")?
@@ -74,6 +84,22 @@ impl Options {
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--output=") {
                 options.output = PathBuf::from(value);
                 options.output_explicit = true;
+            } else if let Some(value) = argument.to_string_lossy().strip_prefix("--profile=") {
+                if value.is_empty() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "--profile requires a directory",
+                    ));
+                }
+                options.profile = Some(PathBuf::from(value));
+            } else if let Some(value) = argument.to_string_lossy().strip_prefix("--url=") {
+                if value.is_empty() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "--url requires a URL",
+                    ));
+                }
+                options.url = Some(value.to_owned());
             } else if let Some(value) = argument.to_string_lossy().strip_prefix("--dump-dom=") {
                 if value.is_empty() {
                     return Err(io::Error::new(
@@ -102,10 +128,13 @@ impl Options {
             }
         }
 
-        if options.dom_url.is_some() && options.css_url.is_some() {
+        let selected_modes = usize::from(options.url.is_some())
+            + usize::from(options.dom_url.is_some())
+            + usize::from(options.css_url.is_some());
+        if selected_modes > 1 {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "--dump-dom and --dump-css cannot be used together",
+                "--url, --dump-dom, and --dump-css cannot be used together",
             ));
         }
 
@@ -125,10 +154,25 @@ pub fn write_output(path: &Path, png: &[u8]) -> io::Result<()> {
 
 pub fn print_help() {
     println!(
-        "{name} {version}\n\n\
-         Render the reference scene or load a URL and dump its DOM or CSS.\n\n\
-         Usage:\n  {name} [--output PATH] [--width PIXELS] [--height PIXELS]\n  {name} --dump-dom URL [--output PATH]\n  {name} --dump-css URL [--output PATH]\n\n\
-         Options:\n  --dump-dom URL   Load HTTP(S)/about:blank and emit a deterministic DOM dump\n  --dump-css URL   Load a document and emit parsed stylesheets and diagnostics\n  --output PATH    Output PNG, DOM, or CSS dump [default PNG: {default_output}]\n  --width PIXELS   Framebuffer width [default: {default_width}]\n  --height PIXELS  Framebuffer height [default: {default_height}]\n  -h, --help       Print this help\n",
+        "{name} {version}
+
+         Render the reference scene, render a URL, or dump its DOM or CSS.
+
+         Usage:
+  {name} [--url URL] [--profile DIR] [--output PATH] [--width PIXELS] [--height PIXELS]
+  {name} --dump-dom URL [--profile DIR] [--output PATH]
+  {name} --dump-css URL [--profile DIR] [--output PATH]
+
+         Options:
+  --url URL        Load HTTP(S)/about:blank and render a deterministic PNG
+  --profile DIR    Use a versioned persistent browser profile
+  --dump-dom URL   Load HTTP(S)/about:blank and emit a deterministic DOM dump
+  --dump-css URL   Load a document and emit parsed stylesheets and diagnostics
+  --output PATH    Output PNG, DOM, or CSS dump [default PNG: {default_output}]
+  --width PIXELS   Framebuffer width [default: {default_width}]
+  --height PIXELS  Framebuffer height [default: {default_height}]
+  -h, --help       Print this help
+",
         name = env!("CARGO_PKG_NAME"),
         version = env!("CARGO_PKG_VERSION"),
         default_output = DEFAULT_OUTPUT,
@@ -192,9 +236,26 @@ mod tests {
         assert_eq!(options.width, 320);
         assert_eq!(options.height, 200);
         assert!(options.output_explicit);
+        assert!(options.profile.is_none());
+        assert!(options.url.is_none());
         assert!(options.dom_url.is_none());
         assert!(options.css_url.is_none());
         assert!(!options.help);
+    }
+
+    #[test]
+    fn parses_url_and_profile_mode() {
+        let options = Options::parse([
+            OsString::from("--url=https://example.test/"),
+            OsString::from("--profile"),
+            OsString::from("artifacts/test-profile"),
+        ])
+        .expect("URL render options should parse");
+        assert_eq!(options.url.as_deref(), Some("https://example.test/"));
+        assert_eq!(
+            options.profile.as_deref(),
+            Some(Path::new("artifacts/test-profile"))
+        );
     }
 
     #[test]
