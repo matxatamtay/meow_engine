@@ -44,6 +44,7 @@ pub fn parse_property_declarations(declaration: &Declaration) -> Vec<PropertyDec
                 PropertyId::BorderLeftWidth,
             ],
         ),
+        "flex" => expand_flex(value),
         _ => PropertyId::from_name(&name)
             .map(|property| PropertyDeclaration {
                 property,
@@ -139,4 +140,60 @@ fn split_top_level_whitespace(source: &str) -> Vec<&str> {
         .into_iter()
         .filter(|value| !value.is_empty())
         .collect()
+}
+
+fn expand_flex(value: &str) -> Vec<PropertyDeclaration> {
+    if let Some(keyword) = parse_css_wide_keyword(value) {
+        return [
+            PropertyId::FlexGrow,
+            PropertyId::FlexShrink,
+            PropertyId::FlexBasis,
+        ]
+        .into_iter()
+        .map(|property| PropertyDeclaration {
+            property,
+            value: SpecifiedValue::CssWide(keyword),
+        })
+        .collect();
+    }
+    let lower = value.trim().to_ascii_lowercase();
+    let triple = match lower.as_str() {
+        "none" => Some(("0", "0", "auto")),
+        "auto" => Some(("1", "1", "auto")),
+        "initial" => Some(("0", "1", "auto")),
+        _ => None,
+    };
+    let (grow, shrink, basis) = if let Some((grow, shrink, basis)) = triple {
+        (grow.to_owned(), shrink.to_owned(), basis.to_owned())
+    } else {
+        let tokens = split_top_level_whitespace(value);
+        match tokens.as_slice() {
+            [grow] => ((*grow).to_owned(), "1".to_owned(), "0%".to_owned()),
+            [grow, second] if is_number(second) => {
+                ((*grow).to_owned(), (*second).to_owned(), "0%".to_owned())
+            }
+            [grow, basis] => ((*grow).to_owned(), "1".to_owned(), (*basis).to_owned()),
+            [grow, shrink, basis] => (
+                (*grow).to_owned(),
+                (*shrink).to_owned(),
+                (*basis).to_owned(),
+            ),
+            _ => return Vec::new(),
+        }
+    };
+    [
+        (PropertyId::FlexGrow, grow),
+        (PropertyId::FlexShrink, shrink),
+        (PropertyId::FlexBasis, basis),
+    ]
+    .into_iter()
+    .map(|(property, value)| PropertyDeclaration {
+        property,
+        value: SpecifiedValue::Value(value),
+    })
+    .collect()
+}
+
+fn is_number(value: &str) -> bool {
+    value.parse::<f64>().is_ok()
 }

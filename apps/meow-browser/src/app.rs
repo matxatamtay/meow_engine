@@ -1,13 +1,22 @@
-use std::{error::Error, fmt, num::NonZeroU32, sync::Arc};
+use std::{
+    error::Error,
+    fmt,
+    num::NonZeroU32,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
-use meow_embedder_api::{BrowserEngine, EmbedderError, Viewport};
+use crate::session::{BrowserSession, SessionInteraction};
+use meow_embedder_api::{InteractionPoint, KeyboardCommand, Viewport};
 use meow_renderer::{GpuRenderer, ReferenceRenderer, RenderError, RenderStatus, Renderer};
 use softbuffer::{Context, SoftBufferError, Surface};
+
 use winit::{
     application::ApplicationHandler,
-    dpi::{LogicalSize, PhysicalSize},
-    event::WindowEvent,
-    event_loop::{ActiveEventLoop, OwnedDisplayHandle},
+    dpi::{LogicalSize, PhysicalPosition, PhysicalSize},
+    event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent},
+    event_loop::{ActiveEventLoop, ControlFlow, OwnedDisplayHandle},
+    keyboard::{Key, ModifiersState, NamedKey},
     window::{Window, WindowId},
 };
 
@@ -25,13 +34,16 @@ pub enum PresentationBackend {
 pub struct BrowserApp {
     cpu_context: Option<DisplayContext>,
     requested_renderer: PresentationBackend,
-    engine: BrowserEngine,
+    session: BrowserSession,
     window: Option<Arc<Window>>,
     presenter: Option<Presenter>,
     metrics: Option<WindowMetrics>,
     lifecycle: Lifecycle,
     presented_frames: u64,
     exit_after_first_frame: bool,
+    cursor_position: PhysicalPosition<f64>,
+    modifiers: ModifiersState,
+    last_timer_tick: Instant,
 }
 
 impl BrowserApp {
@@ -39,17 +51,21 @@ impl BrowserApp {
         cpu_context: Option<DisplayContext>,
         requested_renderer: PresentationBackend,
         exit_after_first_frame: bool,
+        session: BrowserSession,
     ) -> Self {
         Self {
             cpu_context,
             requested_renderer,
-            engine: BrowserEngine::new(),
+            session,
             window: None,
             presenter: None,
             metrics: None,
             lifecycle: Lifecycle::Starting,
             presented_frames: 0,
             exit_after_first_frame,
+            cursor_position: PhysicalPosition::new(0.0, 0.0),
+            modifiers: ModifiersState::empty(),
+            last_timer_tick: Instant::now(),
         }
     }
 
@@ -200,6 +216,169 @@ impl BrowserApp {
         );
     }
 
+    fn viewport_dimensions(&self) -> Option<(u32, u32)> {
+        let size = self.window.as_ref()?.inner_size();
+        (size.width > 0 && size.height > 0).then_some((size.width, size.height))
+    }
+
+    fn request_redraw(&self) {
+        if let Some(window) = &self.window {
+            window.request_redraw();
+        }
+    }
+
+    fn update_window_title(&mut self) {
+        let Some((width, height)) = self.viewport_dimensions() else {
+            return;
+        };
+        match self.session.document_title(width, height) {
+            Ok(title) => {
+                if let Some(window) = &self.window {
+                    window.set_title(&title);
+                }
+            }
+            Err(error) => tracing::warn!(%error, "failed to resolve document title"),
+        }
+    }
+
+    fn handle_interaction_result(&mut self, result: SessionInteraction) {
+        self.drain_console();
+        if let Some(url) = result.navigation {
+            match self.session.navigate(&url) {
+                Ok(committed_url) => {
+                    tracing::info!(url = %committed_url, "interaction navigation committed");
+                    self.update_window_title();
+                    self.request_redraw();
+                }
+                Err(error) => tracing::error!(%error, url = %url, "interaction navigation failed"),
+            }
+        } else if result.redraw {
+            self.request_redraw();
+        }
+    }
+
+    fn drain_console(&mut self) {
+        for message in self.session.take_console() {
+            tracing::info!(target: "page_console", "{}", message);
+        }
+    }
+
+    fn pump_document_tasks(&mut self, event_loop: &ActiveEventLoop) {
+        let now = Instant::now();
+        let elapsed_ms = now
+            .saturating_duration_since(self.last_timer_tick)
+            .as_millis()
+            .min(u128::from(u64::MAX)) as u64;
+        self.last_timer_tick = now;
+
+        let report = match self.session.pump(elapsed_ms, 64) {
+            Ok(report) => report,
+            Err(error) => {
+                tracing::warn!(%error, "page task pump failed");
+                event_loop.set_control_flow(ControlFlow::Wait);
+                return;
+            }
+        };
+        for error in report.errors {
+            tracing::warn!(%error, "page task failed");
+        }
+        for message in report.console {
+            tracing::info!(target: "page_console", "{}", message);
+        }
+        if report.timer_tasks > 0
+            || report.fetches_completed > 0
+            || report.websocket_events > 0
+            || report.frame_scheduled
+        {
+            self.request_redraw();
+        }
+        if report.pending {
+            event_loop.set_control_flow(ControlFlow::WaitUntil(now + Duration::from_millis(16)));
+        } else {
+            event_loop.set_control_flow(ControlFlow::Wait);
+        }
+    }
+
+    fn traverse_history(&mut self, forward: bool) {
+        let result = if forward {
+            self.session.forward()
+        } else {
+            self.session.back()
+        };
+        match result {
+            Ok(true) => {
+                match self.session.current_url() {
+                    Ok(url) => tracing::info!(url = %url, forward, "history traversal committed"),
+                    Err(error) => {
+                        tracing::warn!(%error, "failed to read URL after history traversal")
+                    }
+                }
+                self.update_window_title();
+                self.request_redraw();
+            }
+            Ok(false) => tracing::debug!(forward, "history traversal reached boundary"),
+            Err(error) => tracing::error!(%error, forward, "history traversal failed"),
+        }
+    }
+
+    fn reload_document(&mut self) {
+        match self.session.reload() {
+            Ok(()) => {
+                match self.session.current_url() {
+                    Ok(url) => tracing::info!(url = %url, "document reloaded"),
+                    Err(error) => tracing::warn!(%error, "failed to read URL after reload"),
+                }
+                self.update_window_title();
+                self.request_redraw();
+            }
+            Err(error) => tracing::error!(%error, "document reload failed"),
+        }
+    }
+
+    fn dispatch_keyboard(&mut self, logical_key: &Key) {
+        if self.modifiers.alt_key() {
+            match logical_key {
+                Key::Named(NamedKey::ArrowLeft) => self.traverse_history(false),
+                Key::Named(NamedKey::ArrowRight) => self.traverse_history(true),
+                _ => {}
+            }
+            return;
+        }
+        if self.modifiers.control_key() || self.modifiers.super_key() {
+            if matches!(logical_key, Key::Character(value) if value.eq_ignore_ascii_case("r")) {
+                self.reload_document();
+            }
+            return;
+        }
+        let command = match logical_key {
+            Key::Named(NamedKey::Tab) => Some(KeyboardCommand::Tab {
+                reverse: self.modifiers.shift_key(),
+            }),
+            Key::Named(NamedKey::Enter) => Some(KeyboardCommand::Enter),
+            Key::Named(NamedKey::Space) => Some(KeyboardCommand::Space),
+            Key::Named(NamedKey::Backspace) => Some(KeyboardCommand::Backspace),
+            Key::Character(value) => Some(KeyboardCommand::Text(value.to_string())),
+            _ => None,
+        };
+        let Some(command) = command else {
+            return;
+        };
+        let Some((width, height)) = self.viewport_dimensions() else {
+            return;
+        };
+        match self.session.keyboard(width, height, command) {
+            Ok(result) => self.handle_interaction_result(result),
+            Err(error) => tracing::error!(%error, "keyboard dispatch failed"),
+        }
+    }
+
+    fn pointer_point(&self) -> InteractionPoint {
+        InteractionPoint::new(
+            rounded_i32(self.cursor_position.x),
+            rounded_i32(self.cursor_position.y),
+        )
+    }
+
     fn redraw(&mut self, event_loop: &ActiveEventLoop) -> Result<(), FrameError> {
         let Some(size) = self.window.as_ref().map(|window| window.inner_size()) else {
             return Ok(());
@@ -209,7 +388,11 @@ impl BrowserApp {
         else {
             return Ok(());
         };
-        let frame = self.engine.render_frame(width.get(), height.get())?;
+        let frame = self
+            .session
+            .render(width.get(), height.get())
+            .map_err(FrameError::Session)?;
+        self.update_window_title();
         let Some(presenter) = self.presenter.as_mut() else {
             return Ok(());
         };
@@ -306,6 +489,54 @@ impl ApplicationHandler for BrowserApp {
                     window.request_redraw();
                 }
             }
+            WindowEvent::ModifiersChanged(modifiers) => {
+                self.modifiers = modifiers.state();
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+                self.cursor_position = position;
+            }
+            WindowEvent::MouseWheel { delta, .. } => {
+                let (delta_x, delta_y) = match delta {
+                    MouseScrollDelta::LineDelta(x, y) => (
+                        rounded_i32(-f64::from(x) * 48.0),
+                        rounded_i32(-f64::from(y) * 48.0),
+                    ),
+                    MouseScrollDelta::PixelDelta(position) => {
+                        (rounded_i32(-position.x), rounded_i32(-position.y))
+                    }
+                };
+                if let Some((width, height)) = self.viewport_dimensions() {
+                    match self.session.scroll(width, height, delta_x, delta_y) {
+                        Ok(true) => self.request_redraw(),
+                        Ok(false) => {}
+                        Err(error) => tracing::error!(%error, "scroll dispatch failed"),
+                    }
+                }
+            }
+            WindowEvent::MouseInput {
+                state,
+                button: MouseButton::Left,
+                ..
+            } => {
+                if let Some((width, height)) = self.viewport_dimensions() {
+                    let point = self.pointer_point();
+                    let result = match state {
+                        ElementState::Pressed => self.session.pointer_down(width, height, point),
+                        ElementState::Released => self.session.pointer_up(width, height, point),
+                    };
+                    match result {
+                        Ok(result) => self.handle_interaction_result(result),
+                        Err(error) => tracing::error!(%error, "pointer dispatch failed"),
+                    }
+                }
+            }
+            WindowEvent::KeyboardInput {
+                event,
+                is_synthetic: false,
+                ..
+            } if event.state.is_pressed() => {
+                self.dispatch_keyboard(&event.logical_key);
+            }
             WindowEvent::Occluded(occluded) => {
                 tracing::debug!(occluded, "window occlusion changed");
             }
@@ -320,6 +551,10 @@ impl ApplicationHandler for BrowserApp {
             }
             _ => {}
         }
+    }
+
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        self.pump_document_tasks(event_loop);
     }
 
     fn exiting(&mut self, _event_loop: &ActiveEventLoop) {
@@ -343,7 +578,7 @@ enum Presenter {
 
 #[derive(Debug)]
 enum FrameError {
-    Embedder(EmbedderError),
+    Session(String),
     Renderer(RenderError),
     SoftBuffer(SoftBufferError),
 }
@@ -351,7 +586,7 @@ enum FrameError {
 impl fmt::Display for FrameError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Embedder(error) => error.fmt(formatter),
+            Self::Session(error) => error.fmt(formatter),
             Self::Renderer(error) => error.fmt(formatter),
             Self::SoftBuffer(error) => error.fmt(formatter),
         }
@@ -359,12 +594,6 @@ impl fmt::Display for FrameError {
 }
 
 impl Error for FrameError {}
-
-impl From<EmbedderError> for FrameError {
-    fn from(error: EmbedderError) -> Self {
-        Self::Embedder(error)
-    }
-}
 
 impl From<RenderError> for FrameError {
     fn from(error: RenderError) -> Self {
@@ -420,6 +649,15 @@ impl WindowMetrics {
 
 const fn size_is_zero(size: PhysicalSize<u32>) -> bool {
     size.width == 0 || size.height == 0
+}
+
+fn rounded_i32(value: f64) -> i32 {
+    if !value.is_finite() {
+        return 0;
+    }
+    value
+        .round()
+        .clamp(f64::from(i32::MIN), f64::from(i32::MAX)) as i32
 }
 
 fn valid_scale_factor(scale_factor: f64) -> f64 {

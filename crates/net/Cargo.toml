@@ -11,6 +11,7 @@ workspace = true
 
 [dependencies]
 bytes.workspace = true
+futures-util.workspace = true
 http.workspace = true
 http-body-util.workspace = true
 hyper.workspace = true
@@ -18,3 +19,4 @@ hyper-rustls.workspace = true
 hyper-util.workspace = true
 meow-url-policy = { path = "../url-policy" }
 tokio.workspace = true
+tokio-tungstenite.workspace = true

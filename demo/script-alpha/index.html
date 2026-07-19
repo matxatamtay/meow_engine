@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MeowEngine Script Alpha: booting</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>MeowEngine W25-W28 Script Alpha</h1>
+  <p>This page proves inline, external, and deferred classic scripts share one Boa realm.</p>
+</header>
+<main>
+  <section class="card">
+    <h2>Live DOM state</h2>
+    <p id="status" class="pending">Waiting for the inline script.</p>
+    <p id="order">Execution order has not been written yet.</p>
+  </section>
+  <section class="card">
+    <h2>Bindings exercised</h2>
+    <p>document.title, location.href, querySelector, localName, attributes, textContent, parentElement, firstElementChild, and nextElementSibling.</p>
+    <p><a href="../static-alpha/index.html">Open the static interaction corpus</a></p>
+  </section>
+</main>
+<script>
+  window.executionOrder = ['inline'];
+  const status = document.querySelector('#status');
+  status.textContent = 'Inline script read ' + location.href;
+  status.setAttribute('data-inline', 'done');
+</script>
+<script src="app.js"></script>
+<script defer src="defer.js"></script>
+</body>
+</html>

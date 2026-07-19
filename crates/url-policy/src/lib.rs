@@ -31,6 +31,22 @@ impl BrowserUrl {
         self.0.as_str()
     }
 
+    /// Returns a clone with its query replaced by encoded name/value pairs.
+    #[must_use]
+    pub fn with_query_pairs(&self, pairs: &[(String, String)]) -> Self {
+        let mut url = self.0.clone();
+        {
+            let mut query = url.query_pairs_mut();
+            query.clear();
+            query.extend_pairs(
+                pairs
+                    .iter()
+                    .map(|(name, value)| (name.as_str(), value.as_str())),
+            );
+        }
+        Self(url)
+    }
+
     /// Returns the underlying URL for adapter code.
     #[must_use]
     pub const fn as_url(&self) -> &Url {

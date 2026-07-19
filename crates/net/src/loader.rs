@@ -1,11 +1,15 @@
-//! Tokio, Hyper, and Rustls loading pipeline.
+//! Tokio/Hyper/Rustls direct loading and brokered loading boundary.
 
-use std::{fmt, time::Instant};
+use std::{
+    fmt,
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 use bytes::{Bytes, BytesMut};
 use http::{
     Method, StatusCode,
-    header::{CONTENT_LENGTH, CONTENT_TYPE, LOCATION, USER_AGENT},
+    header::{CONTENT_LENGTH, CONTENT_TYPE, COOKIE, LOCATION, USER_AGENT},
 };
 use http_body_util::{BodyExt, Full};
 use hyper::{Request as HyperRequest, body::Incoming};
@@ -18,31 +22,114 @@ use meow_url_policy::BrowserUrl;
 use tokio::time::timeout;
 
 use super::{
+    broker::{RequestBroker, RequestContext},
+    cache::{NetworkCacheMetrics, ResponseCache},
     cancellation::CancellationToken,
+    cookie::CookieJar,
     error::NetError,
     model::{LoadConfig, RedirectHop, Request, Response, ResponseMetadata},
 };
 
-/// Tokio/Hyper/Rustls loader. DNS resolution is provided by Hyper's Tokio connector.
+/// Cloneable loader that either owns the network stack or delegates to a broker.
 #[derive(Clone)]
 pub struct Loader {
+    backend: LoaderBackend,
+    config: LoadConfig,
+}
+
+#[derive(Clone)]
+enum LoaderBackend {
+    Direct(Arc<DirectLoader>),
+    Brokered(Arc<dyn RequestBroker>),
+}
+
+struct DirectLoader {
     client: Client<HttpsConnector<HttpConnector>, Full<Bytes>>,
     config: LoadConfig,
+    cookies: Mutex<CookieJar>,
+    cache: Mutex<ResponseCache>,
 }
 
 impl fmt::Debug for Loader {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("Loader")
+            .field("brokered", &self.is_brokered())
             .field("config", &self.config)
             .finish_non_exhaustive()
     }
 }
 
 impl Loader {
-    /// Creates a loader using secure defaults and Mozilla WebPKI roots.
+    /// Creates a direct loader using secure defaults and Mozilla WebPKI roots.
     #[must_use]
     pub fn new(config: LoadConfig) -> Self {
+        let direct = DirectLoader::new(config.clone());
+        Self {
+            backend: LoaderBackend::Direct(Arc::new(direct)),
+            config,
+        }
+    }
+
+    /// Creates a loader whose requests cross a permission-mediated boundary.
+    #[must_use]
+    pub fn brokered(broker: Arc<dyn RequestBroker>, config: LoadConfig) -> Self {
+        Self {
+            backend: LoaderBackend::Brokered(broker),
+            config,
+        }
+    }
+
+    /// Returns the active loader policy.
+    #[must_use]
+    pub const fn config(&self) -> &LoadConfig {
+        &self.config
+    }
+
+    /// Returns whether this instance cannot open HTTP sockets itself.
+    #[must_use]
+    pub const fn is_brokered(&self) -> bool {
+        matches!(self.backend, LoaderBackend::Brokered(_))
+    }
+
+    /// Returns direct-loader cache metrics. Brokered cache metrics live in the broker process.
+    #[must_use]
+    pub fn cache_metrics(&self) -> Option<NetworkCacheMetrics> {
+        match &self.backend {
+            LoaderBackend::Direct(direct) => Some(direct.cache().metrics()),
+            LoaderBackend::Brokered(_) => None,
+        }
+    }
+
+    /// Loads one request without ambient credentials.
+    pub async fn load(
+        &self,
+        request: Request,
+        cancellation: &CancellationToken,
+    ) -> Result<Response, NetError> {
+        self.load_with_context(request, RequestContext::anonymous(), cancellation)
+            .await
+    }
+
+    /// Loads one request with explicit document and credential context.
+    pub async fn load_with_context(
+        &self,
+        request: Request,
+        context: RequestContext,
+        cancellation: &CancellationToken,
+    ) -> Result<Response, NetError> {
+        if cancellation.is_cancelled() {
+            return Err(NetError::Cancelled);
+        }
+        match &self.backend {
+            LoaderBackend::Direct(direct) => direct.load(request, context, cancellation).await,
+            LoaderBackend::Brokered(broker) => broker.load(request, context, cancellation).await,
+        }
+    }
+}
+
+impl DirectLoader {
+    fn new(config: LoadConfig) -> Self {
         let mut http = HttpConnector::new();
         http.enforce_http(false);
         http.set_connect_timeout(Some(config.connect_timeout));
@@ -55,19 +142,18 @@ impl Loader {
             .enable_http2()
             .wrap_connector(http);
         let client = Client::builder(TokioExecutor::new()).build(https);
-        Self { client, config }
+        Self {
+            client,
+            config,
+            cookies: Mutex::new(CookieJar::default()),
+            cache: Mutex::new(ResponseCache::default()),
+        }
     }
 
-    /// Returns the active loader policy.
-    #[must_use]
-    pub const fn config(&self) -> &LoadConfig {
-        &self.config
-    }
-
-    /// Loads one HTTP(S) request and retains response metadata.
-    pub async fn load(
+    async fn load(
         &self,
         mut request: Request,
+        context: RequestContext,
         cancellation: &CancellationToken,
     ) -> Result<Response, NetError> {
         if !request.url.is_http_family() {
@@ -75,6 +161,12 @@ impl Loader {
         }
         if cancellation.is_cancelled() {
             return Err(NetError::Cancelled);
+        }
+
+        self.apply_cookie_header(&mut request, &context);
+        let cache_request = request.clone();
+        if let Some(response) = self.cache().get(&cache_request) {
+            return Ok(response);
         }
 
         let started = Instant::now();
@@ -87,7 +179,7 @@ impl Loader {
 
             if is_redirect(status) {
                 let Some(location) = response.headers().get(LOCATION) else {
-                    return self
+                    let response = self
                         .finish_response(
                             requested_url,
                             request.url,
@@ -96,7 +188,8 @@ impl Loader {
                             started,
                             cancellation,
                         )
-                        .await;
+                        .await?;
+                    return Ok(self.finish_policy(cache_request, context, response));
                 };
                 let location = location
                     .to_str()
@@ -117,10 +210,11 @@ impl Loader {
                     to: destination.clone(),
                 });
                 rewrite_request_for_redirect(&mut request, status, destination);
+                self.apply_cookie_header(&mut request, &context);
                 continue;
             }
 
-            return self
+            let response = self
                 .finish_response(
                     requested_url,
                     request.url,
@@ -129,8 +223,55 @@ impl Loader {
                     started,
                     cancellation,
                 )
-                .await;
+                .await?;
+            return Ok(self.finish_policy(cache_request, context, response));
         }
+    }
+
+    fn finish_policy(
+        &self,
+        cache_request: Request,
+        context: RequestContext,
+        response: Response,
+    ) -> Response {
+        let final_cross_origin = context
+            .document_url
+            .as_ref()
+            .is_some_and(|document| document.origin() != response.metadata.final_url.origin());
+        if context.credentials.allows(final_cross_origin) {
+            self.cookies()
+                .store_response(&response.metadata.final_url, &response.headers);
+        }
+        self.cache().store(&cache_request, &response);
+        response
+    }
+
+    fn apply_cookie_header(&self, request: &mut Request, context: &RequestContext) {
+        request.headers.remove(COOKIE);
+        let Some(document_url) = context.document_url.as_ref() else {
+            return;
+        };
+        let cross_origin = document_url.origin() != request.url.origin();
+        if !context.credentials.allows(cross_origin) {
+            return;
+        }
+        if let Some(cookie) = self.cookies().header_for(&request.url, document_url)
+            && let Ok(value) = cookie.parse()
+        {
+            request.headers.insert(COOKIE, value);
+        }
+    }
+
+    fn cookies(&self) -> std::sync::MutexGuard<'_, CookieJar> {
+        self.cookies
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    fn cache(&self) -> std::sync::MutexGuard<'_, ResponseCache> {
+        self.cache
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     async fn send_once(

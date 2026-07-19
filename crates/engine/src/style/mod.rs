@@ -6,7 +6,8 @@ mod variables;
 pub use cache::{StyleEngine, compute_styles};
 pub use model::{
     CascadeOrigin, CascadeStylesheet, ComputedElementStyle, ComputedStyle, ComputedStyleSnapshot,
-    DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, ValueDiagnostic,
+    DirtyFlag, InvalidationReport, RestyleReport, StyleDiagnostic, StyleSharingMetrics,
+    ValueDiagnostic,
 };
 
 #[cfg(test)]

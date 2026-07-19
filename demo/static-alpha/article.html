@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>A Long Static Article</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><h1>A Long Static Article</h1><p><a href="index.html">Back to the demo home</a></p></header>
+<main>
+  <p>This page is deliberately long enough to exercise root scrolling and document-space hit testing.</p>
+  <h2>Rendering pipeline</h2>
+  <p>HTML becomes a DOM, CSS becomes computed style, boxes become layout geometry, inline content becomes fragments, and paint becomes a backend-neutral display list.</p>
+  <p>The interaction layer consumes final geometry instead of teaching the renderer about links or form controls.</p>
+  <h2>Scroll section 1</h2><p>Each wheel event updates a clamped root scroll offset. Layout remains cached while display-list coordinates are translated and clipped to the viewport.</p>
+  <h2>Scroll section 2</h2><p>Hit testing converts viewport coordinates back into document coordinates before walking the stable hit-test list in reverse paint order.</p>
+  <h2>Scroll section 3</h2><p>Pointer down records the pressed target and focus. Pointer up activates only when it lands on the same target.</p>
+  <h2>Scroll section 4</h2><p>Tab and Shift+Tab cycle a deterministic focus chain containing links, text inputs, checkboxes, and buttons.</p>
+  <h2>Scroll section 5</h2><p>GET form submission serializes live text and checkbox state, then starts an ordinary top-level navigation.</p>
+  <h2>Scroll section 6</h2><p>Back, forward, and reload re-fetch documents atomically. A failed load leaves the committed page and history cursor untouched.</p>
+  <h2>Scroll section 7</h2><p>The CPU and GPU renderers still consume the same display-list contract. Interaction remains backend-neutral.</p>
+  <h2>Scroll section 8</h2><p>The alpha is intentionally small, deterministic, and honest about unsupported web-platform features.</p>
+  <h2>Scroll section 9</h2><p>Static documentation and blogs are the target corpus for this release.</p>
+  <h2>Scroll section 10</h2><p><a href="index.html">Return to the top-level demo</a> and verify that history traversal preserves the session chain.</p>
+</main>
+</body>
+</html>

@@ -177,6 +177,50 @@ impl Document {
         ))
     }
 
+    pub fn replace_text_content(
+        &self,
+        element: &NodeHandle,
+        text: &str,
+    ) -> Result<Option<DomMutation>, DomMutationError> {
+        self.assert_same_document(element);
+        let children = {
+            let mut state = self.inner.state.borrow_mut();
+            if !matches!(node(&state, element).kind, NodeKind::Element { .. }) {
+                return Err(DomMutationError::ExpectedElement);
+            }
+            std::mem::take(&mut node_mut(&mut state, element).children)
+        };
+        if children.is_empty() && text.is_empty() {
+            return Ok(None);
+        }
+        let mut removed_nodes = Vec::new();
+        {
+            let state = self.inner.state.borrow();
+            for child in &children {
+                collect_subtree_ids(&state, child, &mut removed_nodes);
+            }
+        }
+        {
+            let mut state = self.inner.state.borrow_mut();
+            for child in &children {
+                node_mut(&mut state, child).parent = None;
+            }
+        }
+        let mut added_nodes = Vec::new();
+        if !text.is_empty() {
+            let child = self.allocate(NodeKind::Text(text.to_owned()), None);
+            self.append_node(element, &child);
+            added_nodes.push(child.id);
+        }
+        Ok(Some(DomMutation {
+            kind: DomMutationKind::ChildList,
+            target: element.id,
+            attribute_name: None,
+            added_nodes,
+            removed_nodes,
+        }))
+    }
+
     pub fn set_text(
         &self,
         text_node: &NodeHandle,

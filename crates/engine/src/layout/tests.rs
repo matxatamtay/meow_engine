@@ -138,3 +138,43 @@ fn min_and_max_height_clamp_content_height() {
     assert!(max.overflow.vertical);
     assert_eq!(max.overflow.scroll_height, CssPx(40));
 }
+
+#[test]
+fn flex_row_distributes_grow_and_gap_for_nav_layout() {
+    let (document, tree) = flow_layout(
+        "<nav id='nav'><a id='brand'>Brand</a><a id='links'>Links</a></nav>",
+        "html, body { display:block; margin:0 } #nav { display:flex; width:300px; gap:10px } #brand { flex:1 1 0% } #links { flex:2 1 0% }",
+        320,
+        200,
+    );
+    let brand = tree.find_source(source(&document, "#brand")).unwrap();
+    let links = tree.find_source(source(&document, "#links")).unwrap();
+    assert_eq!(brand.border_box_width(), CssPx(96));
+    assert_eq!(links.border_box_width(), CssPx(194));
+    assert_eq!(
+        links.border_box_rect().x.0 - (brand.border_box_rect().x.0 + 96),
+        10
+    );
+}
+
+#[test]
+fn flex_row_shrinks_cards_by_weighted_basis() {
+    let (document, tree) = flow_layout(
+        "<main id='cards'><section id='a'></section><section id='b'></section></main>",
+        "html, body { display:block; margin:0 } #cards { display:flex; width:300px } section { display:block; flex:0 1 200px }",
+        320,
+        200,
+    );
+    assert_eq!(
+        tree.find_source(source(&document, "#a"))
+            .unwrap()
+            .border_box_width(),
+        CssPx(150)
+    );
+    assert_eq!(
+        tree.find_source(source(&document, "#b"))
+            .unwrap()
+            .border_box_width(),
+        CssPx(150)
+    );
+}

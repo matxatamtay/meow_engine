@@ -86,6 +86,16 @@ impl Document {
             .find(|element| element.id == id)
     }
 
+    /// Returns concatenated descendant text in DOM order.
+    #[must_use]
+    pub fn text_content(&self, root: &NodeHandle) -> String {
+        self.assert_same_document(root);
+        let state = self.inner.state.borrow();
+        let mut output = String::new();
+        collect_text(&state, root, &mut output);
+        output
+    }
+
     /// Returns the local element name, or `None` for a non-element handle.
     #[must_use]
     pub fn element_local_name(&self, element: &NodeHandle) -> Option<String> {
@@ -104,5 +114,15 @@ fn collect_elements(state: &DomState, handle: &NodeHandle, output: &mut Vec<Node
     }
     for child in &node(state, handle).children {
         collect_elements(state, child, output);
+    }
+}
+
+fn collect_text(state: &DomState, handle: &NodeHandle, output: &mut String) {
+    let current = node(state, handle);
+    if let NodeKind::Text(text) = &current.kind {
+        output.push_str(text);
+    }
+    for child in &current.children {
+        collect_text(state, child, output);
     }
 }

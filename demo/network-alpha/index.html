@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MeowEngine network and storage alpha</title>
+<link rel="stylesheet" href="styles.css">
+<main>
+  <h1>Fetch + storage alpha</h1>
+  <p id="fetch-state">Fetching data.json…</p>
+  <p id="visits">Visits: pending</p>
+  <button id="reset">Reset localStorage</button>
+</main>
+<script>
+const fetchState = document.querySelector('#fetch-state');
+const visits = document.querySelector('#visits');
+const reset = document.querySelector('#reset');
+
+const count = Number(localStorage.getItem('visits') || '0') + 1;
+localStorage.setItem('visits', String(count));
+visits.textContent = 'Visits: ' + count;
+
+fetch('data.json')
+  .then(response => response.json())
+  .then(data => fetchState.textContent = data.message)
+  .catch(error => fetchState.textContent = 'Fetch failed: ' + error.name);
+
+reset.addEventListener('click', () => {
+  localStorage.removeItem('visits');
+  visits.textContent = 'Visits reset. Reload to count again.';
+});
+</script>

@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MeowEngine interactive alpha</title>
+<link rel="stylesheet" href="styles.css">
+<main>
+  <h1>Interactive alpha</h1>
+  <section>
+    <h2>Counter</h2>
+    <button id="increment">Increment</button>
+    <p>Count: <span id="count">0</span></p>
+  </section>
+  <section>
+    <h2>Todo</h2>
+    <form id="todo-form">
+      <input id="todo-input" name="todo" placeholder="What needs doing?" required>
+      <button id="todo-submit">Add</button>
+    </form>
+    <pre id="todo-items">No items yet.</pre>
+  </section>
+  <p id="clock">Timer waiting…</p>
+</main>
+<script>
+const increment = document.querySelector('#increment');
+const count = document.querySelector('#count');
+const form = document.querySelector('#todo-form');
+const input = document.querySelector('#todo-input');
+const items = document.querySelector('#todo-items');
+const clock = document.querySelector('#clock');
+let value = 0;
+let itemCount = 0;
+let ticks = 0;
+
+increment.addEventListener('click', () => {
+  count.textContent = String(++value);
+  count.setAttribute('data-updated', 'true');
+  queueMicrotask(() => console.log('counter', value));
+});
+
+input.addEventListener('invalid', () => {
+  items.textContent = 'Please type a todo first.';
+});
+
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  const todo = input.value;
+  itemCount += 1;
+  items.textContent = itemCount + '. ' + todo + '\n' + items.textContent;
+  input.value = '';
+  console.info('todo-added', todo);
+});
+
+const timer = setInterval(() => {
+  ticks += 1;
+  clock.textContent = 'Timer ticks: ' + ticks;
+  if (ticks === 60) clearInterval(timer);
+}, 1000);
+</script>

@@ -26,16 +26,20 @@ pub fn layout_box_tree(
     LayoutTree::new(viewport, roots)
 }
 
-fn layout_box(
+pub(super) fn layout_box(
     node: &BoxNode,
     styles: &ComputedStyleSnapshot,
     containing_x: CssPx,
     containing_width: CssPx,
 ) -> LayoutBox {
     let style = node.source.and_then(|source| styles.style_for(source));
-    let horizontal = if node.kind == BoxKind::PrincipalBlock || node.kind == BoxKind::AnonymousBlock
-    {
+    let horizontal = if matches!(
+        node.kind,
+        BoxKind::PrincipalBlock | BoxKind::PrincipalFlex | BoxKind::AnonymousBlock
+    ) {
         resolve_horizontal(style, containing_width)
+    } else if node.kind == BoxKind::ReplacedImage {
+        resolve_replaced_horizontal(node, style, containing_width)
     } else {
         HorizontalUsed::default()
     };
@@ -75,6 +79,53 @@ fn layout_box(
         },
         children,
     }
+}
+
+pub(super) fn relayout_children_horizontal(
+    layout: &mut LayoutBox,
+    node: &BoxNode,
+    styles: &ComputedStyleSnapshot,
+) {
+    layout.children = node
+        .children
+        .iter()
+        .map(|child| layout_box(child, styles, layout.content.x, layout.content.width))
+        .collect();
+}
+
+fn resolve_replaced_horizontal(
+    node: &BoxNode,
+    style: Option<&ComputedStyle>,
+    containing_width: CssPx,
+) -> HorizontalUsed {
+    let Some(style) = style else {
+        return HorizontalUsed {
+            content_width: node.intrinsic_size.map_or(CssPx(0), |(width, _)| {
+                CssPx(width.min(i32::MAX as u32) as i32)
+            }),
+            ..HorizontalUsed::default()
+        };
+    };
+    let mut used = resolve_horizontal(Some(style), containing_width);
+    used.margin_left = auto_to_zero(auto_length_property(
+        style,
+        PropertyId::MarginLeft,
+        containing_width,
+    ));
+    used.margin_right = auto_to_zero(auto_length_property(
+        style,
+        PropertyId::MarginRight,
+        containing_width,
+    ));
+    if matches!(
+        style.typed(PropertyId::Width),
+        ComputedValue::LengthOrAuto(LengthOrAuto::Auto)
+    ) {
+        used.content_width = node.intrinsic_size.map_or(CssPx(0), |(width, _)| {
+            CssPx(width.min(i32::MAX as u32) as i32)
+        });
+    }
+    used
 }
 
 #[derive(Clone, Copy, Debug, Default)]

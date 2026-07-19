@@ -13,3 +13,10 @@ workspace = true
 meow-display-list = { path = "../display-list" }
 meow-engine = { path = "../engine" }
 tracing.workspace = true
+
+[dev-dependencies]
+meow-renderer = { path = "../renderer" }
+image.workspace = true
+futures-util.workspace = true
+tokio-tungstenite.workspace = true
+tokio.workspace = true

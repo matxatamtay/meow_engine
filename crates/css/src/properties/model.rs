@@ -32,10 +32,18 @@ pub enum PropertyId {
     BorderBottomWidth,
     BorderLeftWidth,
     BoxSizing,
+    FlexDirection,
+    FlexGrow,
+    FlexShrink,
+    FlexBasis,
+    JustifyContent,
+    AlignItems,
+    Gap,
+    Transform,
 }
 
 /// Every supported property in deterministic registry order.
-pub const ALL_PROPERTIES: [PropertyId; 31] = [
+pub const ALL_PROPERTIES: [PropertyId; 39] = [
     PropertyId::Display,
     PropertyId::Color,
     PropertyId::BackgroundColor,
@@ -67,6 +75,14 @@ pub const ALL_PROPERTIES: [PropertyId; 31] = [
     PropertyId::BorderBottomWidth,
     PropertyId::BorderLeftWidth,
     PropertyId::BoxSizing,
+    PropertyId::FlexDirection,
+    PropertyId::FlexGrow,
+    PropertyId::FlexShrink,
+    PropertyId::FlexBasis,
+    PropertyId::JustifyContent,
+    PropertyId::AlignItems,
+    PropertyId::Gap,
+    PropertyId::Transform,
 ];
 
 /// W11 properties retained by the legacy byte-stable snapshot format.
@@ -151,6 +167,14 @@ impl PropertyId {
             "border-bottom-width" => Self::BorderBottomWidth,
             "border-left-width" => Self::BorderLeftWidth,
             "box-sizing" => Self::BoxSizing,
+            "flex-direction" => Self::FlexDirection,
+            "flex-grow" => Self::FlexGrow,
+            "flex-shrink" => Self::FlexShrink,
+            "flex-basis" => Self::FlexBasis,
+            "justify-content" => Self::JustifyContent,
+            "align-items" => Self::AlignItems,
+            "gap" | "column-gap" | "row-gap" => Self::Gap,
+            "transform" => Self::Transform,
             _ => return None,
         })
     }
@@ -189,6 +213,14 @@ impl PropertyId {
             Self::BorderBottomWidth => "border-bottom-width",
             Self::BorderLeftWidth => "border-left-width",
             Self::BoxSizing => "box-sizing",
+            Self::FlexDirection => "flex-direction",
+            Self::FlexGrow => "flex-grow",
+            Self::FlexShrink => "flex-shrink",
+            Self::FlexBasis => "flex-basis",
+            Self::JustifyContent => "justify-content",
+            Self::AlignItems => "align-items",
+            Self::Gap => "gap",
+            Self::Transform => "transform",
         }
     }
 
@@ -234,6 +266,14 @@ impl PropertyId {
             | Self::BorderBottomWidth
             | Self::BorderLeftWidth => "0px",
             Self::BoxSizing => "content-box",
+            Self::FlexDirection => "row",
+            Self::FlexGrow => "0",
+            Self::FlexShrink => "1",
+            Self::FlexBasis => "auto",
+            Self::JustifyContent => "flex-start",
+            Self::AlignItems => "stretch",
+            Self::Gap => "0px",
+            Self::Transform => "none",
         }
     }
 }

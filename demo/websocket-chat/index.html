@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MeowEngine local chat</title>
+<link rel="stylesheet" href="styles.css">
+<main>
+  <h1>Local WebSocket chat</h1>
+  <p id="status">Connecting to ws://127.0.0.1:9001/…</p>
+  <form id="chat-form">
+    <input id="name" value="cat" placeholder="Name" required>
+    <input id="message" placeholder="Message" required>
+    <button>Send</button>
+  </form>
+  <pre id="messages">Chat ready.</pre>
+</main>
+<script>
+const status = document.querySelector('#status');
+const form = document.querySelector('#chat-form');
+const name = document.querySelector('#name');
+const message = document.querySelector('#message');
+const messages = document.querySelector('#messages');
+
+name.value = localStorage.getItem('chat-name') || 'cat';
+const socket = new WebSocket('ws://127.0.0.1:9001/');
+socket.onopen = () => status.textContent = 'Connected';
+socket.onerror = () => status.textContent = 'Connection error';
+socket.onclose = event => status.textContent = 'Closed: ' + event.code;
+socket.onmessage = event => {
+  messages.textContent = event.data + '\n' + messages.textContent;
+};
+
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  localStorage.setItem('chat-name', name.value);
+  socket.send(name.value + ': ' + message.value);
+  message.value = '';
+});
+</script>

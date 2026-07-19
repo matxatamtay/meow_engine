@@ -1,0 +1,11 @@
+body { color: #182033; background-color: #ffffff; margin: 24px; }
+header { display: block; background-color: #e8f0ff; border-width: 1px; padding: 16px; margin-bottom: 18px; }
+main { display: block; width: 760px; }
+h1 { display: block; color: #243b75; margin-bottom: 12px; }
+h2 { display: block; color: #2e4a8c; margin-top: 20px; margin-bottom: 8px; }
+p { display: block; margin-top: 8px; margin-bottom: 8px; }
+a { color: #0057c2; text-decoration-line: underline; }
+form { display: block; background-color: #f4f6fa; border-width: 1px; padding: 12px; margin-top: 18px; margin-bottom: 18px; }
+input { display: inline; }
+button { display: inline; }
+.card { display: block; border-width: 1px; padding: 12px; margin-top: 12px; margin-bottom: 12px; }

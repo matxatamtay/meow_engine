@@ -293,3 +293,30 @@ fn child_list_mutation_restyles_parent_subtree_but_not_siblings() {
     );
     assert_eq!(engine.style_generation(right.id()), Some(right_generation));
 }
+
+#[test]
+fn identical_computed_styles_share_one_arc() {
+    let document =
+        parse_utf8(b"<main><section></section><section></section><section></section></main>")
+            .document;
+    let stylesheet = parse_stylesheet("main, section { display:block; color:red; margin:0 }");
+    let snapshot = compute_styles(
+        &document,
+        &[CascadeStylesheet::new(CascadeOrigin::Author, &stylesheet)],
+    );
+    let sections = snapshot
+        .elements()
+        .iter()
+        .filter(|entry| entry.local_name == "section")
+        .collect::<Vec<_>>();
+    assert_eq!(sections.len(), 3);
+    assert!(std::sync::Arc::ptr_eq(
+        &sections[0].style,
+        &sections[1].style
+    ));
+    assert!(std::sync::Arc::ptr_eq(
+        &sections[1].style,
+        &sections[2].style
+    ));
+    assert!(snapshot.sharing_metrics().hits >= 2);
+}

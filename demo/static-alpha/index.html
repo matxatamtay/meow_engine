@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MeowEngine Static Alpha</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>MeowEngine v0.1 Static Alpha</h1>
+  <p>A small local corpus for scrolling, links, focus, keyboard input, history, and GET forms.</p>
+</header>
+<main>
+  <p><a href="article.html">Open the long article</a></p>
+  <form action="search.html" method="get">
+    <input type="search" name="q" value="browser engine">
+    <input type="checkbox" name="compact" value="1" checked>
+    <button type="submit" name="source" value="alpha">Search</button>
+  </form>
+  <section class="card">
+    <h2>Keyboard tour</h2>
+    <p>Press Tab and Shift+Tab to move focus. Enter activates links and buttons. Space toggles a checkbox. Alt+Left and Alt+Right traverse history. Ctrl+R reloads.</p>
+  </section>
+  <section class="card">
+    <h2>Scope</h2>
+    <p>This corpus remains script-free so interaction tests stay easy to inspect. The separate script-alpha corpus exercises Boa and DOM bindings.</p>
+    <p><a href="../script-alpha/index.html">Open the W25-W28 script demo</a></p>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MeowEngine layout and media alpha</title>
+<link rel="stylesheet" href="styles.css">
+<header class="nav">
+  <strong class="brand">MeowEngine</strong>
+  <nav class="links"><a href="#features">Features</a><a href="#media">Media</a><a href="#metrics">Metrics</a></nav>
+</header>
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Layout grew whiskers.</h1>
+      <p>Single-line flex, isolated opacity, 2D transforms, raster images, and SVG now travel through one display list.</p>
+    </div>
+    <img class="hero-art" src="hero.svg">
+  </section>
+  <section id="features" class="cards">
+    <article class="card"><img src="pixel.png"><h2>Flex cards</h2><p>Basis, grow, shrink, gap, alignment, and main-axis distribution.</p></article>
+    <article class="card faded"><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='96'%20height='64'%3E%3Crect%20width='96'%20height='64'%20fill='%23ffd45c'/%3E%3Ccircle%20cx='48'%20cy='32'%20r='18'%20fill='%233b2d1f'/%3E%3C/svg%3E"><h2>Opacity group</h2><p>The whole card composites once rather than multiplying child alpha.</p></article>
+    <article class="card tilted"><img src="icon.svg"><h2>Transform layer</h2><p>Translate, scale, rotate, and matrix metadata stay attached to paint.</p></article>
+  </section>
+  <section id="metrics" class="metric-strip">
+    <strong>Style sharing</strong><strong>Glyph cache</strong><strong>Image cache</strong><strong>Tracing spans</strong>
+  </section>
+</main>

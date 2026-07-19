@@ -1,0 +1,5 @@
+html { background-color: #eef3ff; color: #17213a; font-size: 18px; }
+main { width: 620px; margin: 28px; padding: 24px; background-color: white; border-width: 2px; border-color: #31508f; }
+input, button { display: block; width: 500px; height: 36px; margin-bottom: 12px; }
+button { width: 180px; background-color: #d7e5ff; border-width: 2px; border-color: #31508f; }
+pre { display: block; padding: 16px; background-color: #f4f6fb; }

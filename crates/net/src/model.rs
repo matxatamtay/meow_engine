@@ -50,6 +50,32 @@ impl Request {
             .insert(ACCEPT, "text/css,*/*;q=0.1".parse().unwrap());
         request
     }
+
+    /// Creates a GET request for an image resource.
+    #[must_use]
+    pub fn image(url: BrowserUrl) -> Self {
+        let mut request = Self::get(url);
+        request.headers.insert(
+            ACCEPT,
+            "image/avif,image/webp,image/png,image/svg+xml,image/*,*/*;q=0.8"
+                .parse()
+                .unwrap(),
+        );
+        request
+    }
+
+    /// Creates a GET request for an external classic JavaScript resource.
+    #[must_use]
+    pub fn script(url: BrowserUrl) -> Self {
+        let mut request = Self::get(url);
+        request.headers.insert(
+            ACCEPT,
+            "text/javascript,application/javascript,*/*;q=0.1"
+                .parse()
+                .unwrap(),
+        );
+        request
+    }
 }
 
 /// A completed response and its body bytes.

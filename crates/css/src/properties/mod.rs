@@ -9,7 +9,8 @@ pub use model::{
 pub use parser::{parse_css_wide_keyword, parse_property_declaration, parse_property_declarations};
 pub use values::{
     BorderWidthValue, BoxSizingValue, CSS_NUMBER_SCALE, ColorValue, ComputedValue, CssNumber,
-    DisplayValue, Length, LengthOrAuto, LengthOrNone, LengthUnit, NamedColor, parse_computed_value,
+    DisplayValue, Length, LengthOrAuto, LengthOrNone, LengthUnit, NamedColor, TransformList,
+    TransformOperation, parse_computed_value,
 };
 
 #[cfg(test)]

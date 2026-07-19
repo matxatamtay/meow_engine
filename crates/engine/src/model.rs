@@ -1,19 +1,34 @@
 //! Committed document, history, and stylesheet state models.
 
-use std::fmt::Write as _;
+use std::{
+    collections::BTreeMap,
+    fmt::Write as _,
+    sync::{Arc, LazyLock},
+};
 
-use meow_css::Stylesheet;
+use meow_css::{Stylesheet, parse_stylesheet};
 use meow_display_list::{DisplayList, DisplayListError, Viewport};
-use meow_html::{Document, NodeId};
+use meow_html::{Document, DomMutation, NodeId};
 use meow_net::ResponseMetadata;
 use meow_url_policy::BrowserUrl;
 
 use crate::{
     BoxTree, CascadeOrigin, CascadeStylesheet, ComputedStyleSnapshot, FontDatabase, FragmentLayout,
-    LayoutTree, LayoutViewport, build_box_tree, build_fragment_display_list,
-    build_layout_display_list, compute_styles, layout_box_tree, layout_fragment_tree,
-    layout_normal_flow,
+    ImageCacheMetrics, ImageLoadError, ImageResource, LayoutTree, LayoutViewport, ScriptExecution,
+    build_box_tree_with_images, build_fragment_display_list_with_images, build_layout_display_list,
+    compute_styles, layout_box_tree, layout_fragment_tree, layout_normal_flow,
 };
+
+const HTML_USER_AGENT_CSS: &str = r#"
+html, body, address, article, aside, blockquote, div, dl, fieldset, figcaption,
+figure, footer, form, h1, h2, h3, h4, h5, h6, header, hr, main, nav, ol, p,
+pre, section, ul { display: block; }
+head, base, link, meta, title, style, script, template { display: none; }
+body { margin: 8px; }
+"#;
+
+static HTML_USER_AGENT_STYLESHEET: LazyLock<Stylesheet> =
+    LazyLock::new(|| parse_stylesheet(HTML_USER_AGENT_CSS));
 
 /// Source that selected the committed document encoding.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -105,6 +120,16 @@ pub struct DocumentState {
     pub stylesheets: Vec<DocumentStylesheet>,
     /// Non-fatal linked stylesheet failures.
     pub stylesheet_errors: Vec<StylesheetLoadError>,
+    /// Classic-script tasks in deterministic execution order.
+    pub script_executions: Vec<ScriptExecution>,
+    /// DOM mutation records produced by completed classic scripts.
+    pub script_mutations: Vec<DomMutation>,
+    /// Successfully decoded image resources keyed by their `<img>` node.
+    pub images: BTreeMap<NodeId, Arc<ImageResource>>,
+    /// Non-fatal image resolution or decode failures.
+    pub image_errors: Vec<ImageLoadError>,
+    /// Shared image-cache counters after this document finished loading.
+    pub image_cache_metrics: ImageCacheMetrics,
     /// Index of this document in the current history list.
     pub history_index: usize,
 }
@@ -153,15 +178,47 @@ impl DocumentState {
         output
     }
 
+    /// Produces a deterministic classic-script execution dump.
+    #[must_use]
+    pub fn dump_scripts(&self) -> String {
+        let mut output = String::new();
+        for (index, execution) in self.script_executions.iter().enumerate() {
+            writeln!(
+                output,
+                "script[{index}] phase={:?} node={:?} url={:?} status={}",
+                execution.phase,
+                execution.node.map(|node| node.slot),
+                execution.source_url.as_str(),
+                if execution.succeeded() { "ok" } else { "error" }
+            )
+            .expect("writing to String cannot fail");
+            if let Some(error) = &execution.error {
+                writeln!(
+                    output,
+                    "script-error[{index}] kind={:?} message={:?}",
+                    error.kind, error.message
+                )
+                .expect("writing to String cannot fail");
+            }
+        }
+        writeln!(output, "script-mutations={}", self.script_mutations.len())
+            .expect("writing to String cannot fail");
+        output
+    }
+
     /// Computes author stylesheets against the committed document.
     #[must_use]
     pub fn computed_styles(&self) -> ComputedStyleSnapshot {
-        let stylesheets = self
-            .stylesheets
-            .iter()
-            .filter(|entry| media_is_active(entry.media.as_deref()))
-            .map(|entry| CascadeStylesheet::new(CascadeOrigin::Author, &entry.stylesheet))
-            .collect::<Vec<_>>();
+        let mut stylesheets = vec![CascadeStylesheet::new(
+            CascadeOrigin::UserAgent,
+            &HTML_USER_AGENT_STYLESHEET,
+        )];
+        stylesheets.extend(
+            self.stylesheets
+                .iter()
+                .filter(|entry| media_is_active(entry.media.as_deref()))
+                .map(|entry| CascadeStylesheet::new(CascadeOrigin::Author, &entry.stylesheet)),
+        );
         compute_styles(&self.document, &stylesheets)
     }
 
@@ -181,7 +238,7 @@ impl DocumentState {
     #[must_use]
     pub fn box_tree(&self) -> BoxTree {
         let styles = self.computed_styles();
-        build_box_tree(&self.document, &styles)
+        build_box_tree_with_images(&self.document, &styles, &self.images)
     }
 
     /// Produces a deterministic box-tree dump separate from the DOM dump.
@@ -194,7 +251,7 @@ impl DocumentState {
     #[must_use]
     pub fn layout(&self, viewport: LayoutViewport) -> LayoutTree {
         let styles = self.computed_styles();
-        let boxes = build_box_tree(&self.document, &styles);
+        let boxes = build_box_tree_with_images(&self.document, &styles, &self.images);
         layout_box_tree(&boxes, &styles, viewport)
     }
 
@@ -208,7 +265,7 @@ impl DocumentState {
     #[must_use]
     pub fn flow_layout(&self, viewport: LayoutViewport) -> LayoutTree {
         let styles = self.computed_styles();
-        let boxes = build_box_tree(&self.document, &styles);
+        let boxes = build_box_tree_with_images(&self.document, &styles, &self.images);
         layout_normal_flow(&boxes, &styles, viewport)
     }
 
@@ -222,7 +279,7 @@ impl DocumentState {
     #[must_use]
     pub fn fragment_layout(&self, viewport: LayoutViewport) -> FragmentLayout {
         let styles = self.computed_styles();
-        let boxes = build_box_tree(&self.document, &styles);
+        let boxes = build_box_tree_with_images(&self.document, &styles, &self.images);
         let mut fonts = FontDatabase::deterministic();
         layout_fragment_tree(&boxes, &styles, viewport, &mut fonts)
     }
@@ -239,7 +296,7 @@ impl DocumentState {
         viewport: Viewport,
     ) -> Result<DisplayList, DisplayListError> {
         let styles = self.computed_styles();
-        let boxes = build_box_tree(&self.document, &styles);
+        let boxes = build_box_tree_with_images(&self.document, &styles, &self.images);
         let mut fonts = FontDatabase::deterministic();
         let output = layout_fragment_tree(
             &boxes,
@@ -247,13 +304,19 @@ impl DocumentState {
             LayoutViewport::new(viewport.width, viewport.height),
             &mut fonts,
         );
-        build_fragment_display_list(&output.layout, &styles, &output.fragments, viewport)
+        build_fragment_display_list_with_images(
+            &output.layout,
+            &styles,
+            &output.fragments,
+            viewport,
+            &self.images,
+        )
     }
 
     /// Builds W16 background and border paint commands for the committed document.
     pub fn display_list(&self, viewport: Viewport) -> Result<DisplayList, DisplayListError> {
         let styles = self.computed_styles();
-        let boxes = build_box_tree(&self.document, &styles);
+        let boxes = build_box_tree_with_images(&self.document, &styles, &self.images);
         let layout = layout_normal_flow(
             &boxes,
             &styles,

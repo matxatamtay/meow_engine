@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+};
 
 use meow_html::{Document, DomMutation, DomMutationKind, NodeId};
 
@@ -6,12 +9,12 @@ use super::{
     cascade::{PreparedStyleSet, compute_element_style, prepare_styles},
     model::{
         CascadeStylesheet, ComputedElementStyle, ComputedStyle, ComputedStyleSnapshot, DirtyFlag,
-        InvalidationReport, RestyleReport, ValueDiagnostic,
+        InvalidationReport, RestyleReport, StyleSharingMetrics, ValueDiagnostic,
     },
 };
 
 struct CachedStyle {
-    style: ComputedStyle,
+    style: Arc<ComputedStyle>,
     generation: u64,
 }
 
@@ -21,6 +24,9 @@ pub struct StyleEngine<'a> {
     cache: BTreeMap<NodeId, CachedStyle>,
     dirty: BTreeMap<NodeId, DirtyFlag>,
     value_diagnostics: BTreeMap<NodeId, Vec<ValueDiagnostic>>,
+    interned_styles: Vec<Arc<ComputedStyle>>,
+    sharing_hits: u64,
+    sharing_misses: u64,
     generation: u64,
 }
 
@@ -33,6 +39,9 @@ impl<'a> StyleEngine<'a> {
             cache: BTreeMap::new(),
             dirty: BTreeMap::new(),
             value_diagnostics: BTreeMap::new(),
+            interned_styles: Vec::new(),
+            sharing_hits: 0,
+            sharing_misses: 0,
             generation: 1,
         };
         engine.compute_initial_styles();
@@ -41,7 +50,7 @@ impl<'a> StyleEngine<'a> {
 
     #[must_use]
     pub fn style_for(&self, node: NodeId) -> Option<&ComputedStyle> {
-        self.cache.get(&node).map(|entry| &entry.style)
+        self.cache.get(&node).map(|entry| entry.style.as_ref())
     }
 
     #[must_use]
@@ -82,6 +91,12 @@ impl<'a> StyleEngine<'a> {
             .flat_map(|items| items.iter().cloned())
             .collect();
         ComputedStyleSnapshot {
+            sharing_metrics: StyleSharingMetrics {
+                hits: self.sharing_hits,
+                misses: self.sharing_misses,
+                unique_styles: self.interned_styles.len(),
+                shared_elements: self.cache.len().saturating_sub(self.interned_styles.len()),
+            },
             elements,
             diagnostics: self.prepared.diagnostics.clone(),
             value_diagnostics,
@@ -171,26 +186,22 @@ impl<'a> StyleEngine<'a> {
                 .document
                 .parent_element(element)
                 .and_then(|parent| self.cache.get(&parent.id()))
-                .map(|entry| &entry.style);
+                .map(|entry| entry.style.as_ref());
             let computation =
                 compute_element_style(self.document, element, parent_style, &self.prepared);
             let old = self
                 .cache
                 .get(&element.id())
-                .map(|entry| entry.style.clone());
+                .map(|entry| Arc::clone(&entry.style));
             let inherited_changed = old
-                .as_ref()
+                .as_deref()
                 .is_none_or(|style| !style.inherited_inputs_equal(&computation.style));
-            if old.as_ref() != Some(&computation.style) {
+            if old.as_deref() != Some(&computation.style) {
                 changed_nodes.push(element.id());
             }
-            self.cache.insert(
-                element.id(),
-                CachedStyle {
-                    style: computation.style,
-                    generation,
-                },
-            );
+            let style = self.intern_style(computation.style);
+            self.cache
+                .insert(element.id(), CachedStyle { style, generation });
             self.value_diagnostics
                 .insert(element.id(), computation.diagnostics);
             restyled_nodes.push(element.id());
@@ -225,19 +236,35 @@ impl<'a> StyleEngine<'a> {
                 .document
                 .parent_element(&element)
                 .and_then(|parent| self.cache.get(&parent.id()))
-                .map(|entry| &entry.style);
+                .map(|entry| entry.style.as_ref());
             let computation =
                 compute_element_style(self.document, &element, parent_style, &self.prepared);
+            let style = self.intern_style(computation.style);
             self.cache.insert(
                 element.id(),
                 CachedStyle {
-                    style: computation.style,
+                    style,
                     generation: self.generation,
                 },
             );
             self.value_diagnostics
                 .insert(element.id(), computation.diagnostics);
         }
+    }
+
+    fn intern_style(&mut self, style: ComputedStyle) -> Arc<ComputedStyle> {
+        if let Some(existing) = self
+            .interned_styles
+            .iter()
+            .find(|existing| existing.as_ref() == &style)
+        {
+            self.sharing_hits = self.sharing_hits.saturating_add(1);
+            return Arc::clone(existing);
+        }
+        self.sharing_misses = self.sharing_misses.saturating_add(1);
+        let style = Arc::new(style);
+        self.interned_styles.push(Arc::clone(&style));
+        style
     }
 
     fn mark_dirty(&mut self, root: &meow_html::NodeHandle, flag: DirtyFlag) {

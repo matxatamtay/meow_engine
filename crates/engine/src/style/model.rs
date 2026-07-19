@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Write as _};
+use std::{collections::BTreeMap, fmt::Write as _, sync::Arc};
 
 use meow_css::{
     ALL_PROPERTIES, ComputedValue, PropertyId, Stylesheet, W11_SNAPSHOT_PROPERTIES,
@@ -26,7 +26,7 @@ impl<'a> CascadeStylesheet<'a> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ComputedStyle {
     pub(super) values: BTreeMap<PropertyId, String>,
     pub(super) typed_values: BTreeMap<PropertyId, ComputedValue>,
@@ -81,7 +81,7 @@ pub struct ComputedElementStyle {
     pub local_name: String,
     pub element_id: Option<String>,
     pub generation: u64,
-    pub style: ComputedStyle,
+    pub style: Arc<ComputedStyle>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -99,11 +99,20 @@ pub struct ValueDiagnostic {
     pub message: String,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct StyleSharingMetrics {
+    pub hits: u64,
+    pub misses: u64,
+    pub unique_styles: usize,
+    pub shared_elements: usize,
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ComputedStyleSnapshot {
     pub(super) elements: Vec<ComputedElementStyle>,
     pub(super) diagnostics: Vec<StyleDiagnostic>,
     pub(super) value_diagnostics: Vec<ValueDiagnostic>,
+    pub(super) sharing_metrics: StyleSharingMetrics,
 }
 
 impl ComputedStyleSnapshot {
@@ -123,11 +132,16 @@ impl ComputedStyleSnapshot {
     }
 
     #[must_use]
+    pub const fn sharing_metrics(&self) -> StyleSharingMetrics {
+        self.sharing_metrics
+    }
+
+    #[must_use]
     pub fn style_for(&self, node: NodeId) -> Option<&ComputedStyle> {
         self.elements
             .iter()
             .find(|entry| entry.node == node)
-            .map(|entry| &entry.style)
+            .map(|entry| entry.style.as_ref())
     }
 
     /// Legacy W11 snapshot, intentionally limited to the original 13 properties.

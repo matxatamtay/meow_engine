@@ -1,16 +1,28 @@
-use meow_css::{ComputedValue, DisplayValue, PropertyId};
-use meow_html::{Document, NodeHandle, RenderChild};
+use std::{collections::BTreeMap, sync::Arc};
 
-use crate::ComputedStyleSnapshot;
+use meow_css::{ComputedValue, DisplayValue, PropertyId};
+use meow_html::{Document, NodeHandle, NodeId, RenderChild};
+
+use crate::{ComputedStyleSnapshot, ImageResource};
 
 use super::model::{BoxId, BoxKind, BoxNode, BoxTree};
 
 /// Generates an independent formatting box tree from DOM and computed styles.
 #[must_use]
 pub fn build_box_tree(document: &Document, styles: &ComputedStyleSnapshot) -> BoxTree {
+    build_box_tree_with_images(document, styles, &BTreeMap::new())
+}
+
+#[must_use]
+pub fn build_box_tree_with_images(
+    document: &Document,
+    styles: &ComputedStyleSnapshot,
+    images: &BTreeMap<NodeId, Arc<ImageResource>>,
+) -> BoxTree {
     let mut builder = Builder {
         document,
         styles,
+        images,
         next_id: 0,
     };
     let roots = document
@@ -24,20 +36,28 @@ pub fn build_box_tree(document: &Document, styles: &ComputedStyleSnapshot) -> Bo
 struct Builder<'a> {
     document: &'a Document,
     styles: &'a ComputedStyleSnapshot,
+    images: &'a BTreeMap<NodeId, Arc<ImageResource>>,
     next_id: u32,
 }
 
 impl Builder<'_> {
     fn build_element(&mut self, element: &NodeHandle) -> Option<BoxNode> {
         let style = self.styles.style_for(element.id())?;
+        let local_name = self.document.element_local_name(element);
         let kind = match style.typed(PropertyId::Display) {
             ComputedValue::Display(DisplayValue::None) => return None,
+            ComputedValue::Display(DisplayValue::Flex) => BoxKind::PrincipalFlex,
+            ComputedValue::Display(DisplayValue::Inline | DisplayValue::InlineBlock)
+                if local_name.as_deref() == Some("img") =>
+            {
+                BoxKind::ReplacedImage
+            }
             ComputedValue::Display(DisplayValue::Inline | DisplayValue::InlineBlock) => {
                 BoxKind::PrincipalInline
             }
-            ComputedValue::Display(
-                DisplayValue::Block | DisplayValue::Flex | DisplayValue::Grid,
-            ) => BoxKind::PrincipalBlock,
+            ComputedValue::Display(DisplayValue::Block | DisplayValue::Grid) => {
+                BoxKind::PrincipalBlock
+            }
             _ => unreachable!("display always has a display typed value"),
         };
         let id = self.allocate_id();
@@ -56,10 +76,14 @@ impl Builder<'_> {
             id,
             kind,
             source: Some(element.id()),
-            local_name: self.document.element_local_name(element),
+            local_name,
             element_id: self.document.element_attribute(element, "id"),
             text: None,
             raw_text: None,
+            intrinsic_size: self
+                .images
+                .get(&element.id())
+                .map(|image| (image.width, image.height)),
             children,
         })
     }
@@ -77,6 +101,7 @@ impl Builder<'_> {
                     element_id: None,
                     text: Some(normalized),
                     raw_text: Some(text),
+                    intrinsic_size: None,
                     children: Vec::new(),
                 })
             }
@@ -116,6 +141,7 @@ impl Builder<'_> {
             element_id: None,
             text: None,
             raw_text: None,
+            intrinsic_size: None,
             children: std::mem::take(run),
         });
     }

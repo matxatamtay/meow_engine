@@ -1,6 +1,6 @@
 use super::model::{
     BorderWidthValue, BoxSizingValue, ColorValue, ComputedValue, CssNumber, DisplayValue, Length,
-    LengthOrAuto, LengthOrNone, LengthUnit, NamedColor,
+    LengthOrAuto, LengthOrNone, LengthUnit, NamedColor, TransformList, TransformOperation,
 };
 use crate::PropertyId;
 
@@ -39,6 +39,31 @@ pub fn parse_computed_value(property: PropertyId, source: &str) -> Option<Comput
         | PropertyId::BorderBottomWidth
         | PropertyId::BorderLeftWidth => parse_border_width(source).map(ComputedValue::BorderWidth),
         PropertyId::BoxSizing => parse_box_sizing(source).map(ComputedValue::BoxSizing),
+        PropertyId::FlexDirection => {
+            parse_keyword(source, &["row", "row-reverse", "column", "column-reverse"])
+        }
+        PropertyId::FlexGrow | PropertyId::FlexShrink => CssNumber::parse(source)
+            .filter(|value| !value.is_negative())
+            .map(ComputedValue::Number),
+        PropertyId::FlexBasis => {
+            parse_length_or_auto(source, false).map(ComputedValue::LengthOrAuto)
+        }
+        PropertyId::JustifyContent => parse_keyword(
+            source,
+            &[
+                "flex-start",
+                "flex-end",
+                "center",
+                "space-between",
+                "space-around",
+                "space-evenly",
+            ],
+        ),
+        PropertyId::AlignItems => {
+            parse_keyword(source, &["stretch", "flex-start", "flex-end", "center"])
+        }
+        PropertyId::Gap => parse_length(source, false).map(ComputedValue::Length),
+        PropertyId::Transform => parse_transform(source).map(ComputedValue::Transform),
         PropertyId::FontSize => parse_font_size(source),
         PropertyId::LineHeight => parse_line_height(source),
         PropertyId::FontStyle => parse_keyword(source, &["normal", "italic", "oblique"]),
@@ -258,4 +283,115 @@ fn parse_hex_color(source: &str) -> Option<ColorValue> {
         blue,
         alpha,
     })
+}
+
+fn parse_transform(source: &str) -> Option<TransformList> {
+    if source.eq_ignore_ascii_case("none") {
+        return Some(TransformList::default());
+    }
+    let mut operations = Vec::new();
+    let mut rest = source.trim();
+    while !rest.is_empty() {
+        let open = rest.find('(')?;
+        let name = rest[..open].trim().to_ascii_lowercase();
+        let mut depth = 0_i32;
+        let mut close = None;
+        for (offset, character) in rest[open..].char_indices() {
+            match character {
+                '(' => depth += 1,
+                ')' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        close = Some(open + offset);
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+        let close = close?;
+        let arguments = rest[open + 1..close].trim();
+        operations.push(parse_transform_function(&name, arguments)?);
+        rest = rest[close + 1..].trim_start();
+    }
+    (!operations.is_empty()).then_some(TransformList(operations))
+}
+
+fn parse_transform_function(name: &str, arguments: &str) -> Option<TransformOperation> {
+    let values = split_function_arguments(arguments);
+    match name {
+        "translate" => {
+            let x = parse_length(values.first()?, true)?;
+            let y = match values.get(1) {
+                Some(value) => parse_length(value, true)?,
+                None => Length {
+                    number: CssNumber::zero(),
+                    unit: LengthUnit::Px,
+                },
+            };
+            (values.len() <= 2).then_some(TransformOperation::Translate { x, y })
+        }
+        "translatex" if values.len() == 1 => Some(TransformOperation::Translate {
+            x: parse_length(values.first()?, true)?,
+            y: Length {
+                number: CssNumber::zero(),
+                unit: LengthUnit::Px,
+            },
+        }),
+        "translatey" if values.len() == 1 => Some(TransformOperation::Translate {
+            x: Length {
+                number: CssNumber::zero(),
+                unit: LengthUnit::Px,
+            },
+            y: parse_length(values.first()?, true)?,
+        }),
+        "scale" => {
+            let x = CssNumber::parse(values.first()?)?;
+            let y = match values.get(1) {
+                Some(value) => CssNumber::parse(value)?,
+                None => x,
+            };
+            (values.len() <= 2).then_some(TransformOperation::Scale { x, y })
+        }
+        "scalex" if values.len() == 1 => Some(TransformOperation::Scale {
+            x: CssNumber::parse(values.first()?)?,
+            y: CssNumber::from_scaled(super::model::CSS_NUMBER_SCALE),
+        }),
+        "scaley" if values.len() == 1 => Some(TransformOperation::Scale {
+            x: CssNumber::from_scaled(super::model::CSS_NUMBER_SCALE),
+            y: CssNumber::parse(values.first()?)?,
+        }),
+        "rotate" if values.len() == 1 => Some(TransformOperation::Rotate {
+            degrees: parse_angle(values.first()?)?,
+        }),
+        "matrix" if values.len() == 6 => Some(TransformOperation::Matrix {
+            a: CssNumber::parse(&values[0])?,
+            b: CssNumber::parse(&values[1])?,
+            c: CssNumber::parse(&values[2])?,
+            d: CssNumber::parse(&values[3])?,
+            e: CssNumber::parse(&values[4])?,
+            f: CssNumber::parse(&values[5])?,
+        }),
+        _ => None,
+    }
+}
+
+fn split_function_arguments(source: &str) -> Vec<String> {
+    source
+        .replace(',', " ")
+        .split_whitespace()
+        .map(str::to_owned)
+        .collect()
+}
+
+fn parse_angle(source: &str) -> Option<CssNumber> {
+    let lower = source.trim().to_ascii_lowercase();
+    if let Some(value) = lower.strip_suffix("deg") {
+        return CssNumber::parse(value);
+    }
+    if let Some(value) = lower.strip_suffix("turn") {
+        let turns = CssNumber::parse(value)?.scaled();
+        return Some(CssNumber::from_scaled(turns.saturating_mul(360)));
+    }
+    None
 }

@@ -1,10 +1,15 @@
 //! HTTP/TLS resource loading with redirects, limits, timeouts, and cancellation.
 
+mod broker;
+mod cache;
 mod cancellation;
+mod cookie;
 mod error;
 mod loader;
 mod model;
 
+pub use broker::{CredentialsMode, RequestBroker, RequestContext};
+pub use cache::NetworkCacheMetrics;
 pub use cancellation::CancellationToken;
 pub use error::NetError;
 pub use loader::Loader;

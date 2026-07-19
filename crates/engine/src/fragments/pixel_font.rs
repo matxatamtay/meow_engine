@@ -1,7 +1,59 @@
+use std::{
+    collections::BTreeMap,
+    sync::{
+        LazyLock, Mutex,
+        atomic::{AtomicU64, Ordering},
+    },
+};
+
 use crate::is_combining_mark;
+
+static GLYPH_CACHE: LazyLock<Mutex<BTreeMap<char, Option<[u8; 7]>>>> =
+    LazyLock::new(|| Mutex::new(BTreeMap::new()));
+static GLYPH_CACHE_HITS: AtomicU64 = AtomicU64::new(0);
+static GLYPH_CACHE_MISSES: AtomicU64 = AtomicU64::new(0);
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct GlyphCacheMetrics {
+    pub hits: u64,
+    pub misses: u64,
+    pub resident_glyphs: usize,
+}
+
+#[must_use]
+pub fn glyph_cache_metrics() -> GlyphCacheMetrics {
+    let resident_glyphs = GLYPH_CACHE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .len();
+    GlyphCacheMetrics {
+        hits: GLYPH_CACHE_HITS.load(Ordering::Relaxed),
+        misses: GLYPH_CACHE_MISSES.load(Ordering::Relaxed),
+        resident_glyphs,
+    }
+}
 
 #[must_use]
 pub(super) fn bitmap(character: char) -> Option<[u8; 7]> {
+    {
+        let cache = GLYPH_CACHE
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some(bitmap) = cache.get(&character) {
+            GLYPH_CACHE_HITS.fetch_add(1, Ordering::Relaxed);
+            return *bitmap;
+        }
+    }
+    GLYPH_CACHE_MISSES.fetch_add(1, Ordering::Relaxed);
+    let bitmap = raw_bitmap(character);
+    GLYPH_CACHE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .insert(character, bitmap);
+    bitmap
+}
+
+fn raw_bitmap(character: char) -> Option<[u8; 7]> {
     if is_combining_mark(character) || character.is_whitespace() {
         return None;
     }
@@ -186,5 +238,21 @@ fn latin_base(character: char) -> char {
         'ỳ' | 'ý' | 'ỷ' | 'ỹ' | 'ỵ' | 'Ỳ' | 'Ý' | 'Ỷ' | 'Ỹ' | 'Ỵ' => 'Y',
         'đ' | 'Đ' => 'D',
         value => value,
+    }
+}
+
+#[cfg(test)]
+mod cache_tests {
+    use super::*;
+
+    #[test]
+    fn repeated_bitmap_lookup_hits_shared_cache() {
+        let before = glyph_cache_metrics();
+        assert!(bitmap('Ω').is_some());
+        let middle = glyph_cache_metrics();
+        assert!(bitmap('Ω').is_some());
+        let after = glyph_cache_metrics();
+        assert!(middle.misses >= before.misses);
+        assert!(after.hits > middle.hits);
     }
 }

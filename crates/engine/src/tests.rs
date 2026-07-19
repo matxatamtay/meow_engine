@@ -100,8 +100,8 @@ async fn loads_inline_and_external_stylesheets_in_document_order() {
     assert_eq!(style.get(PropertyId::Color), "red");
     assert_eq!(
         style.get(PropertyId::Display),
-        "inline",
-        "print stylesheet must not apply to the default screen medium"
+        "block",
+        "inactive print CSS must not override the HTML user-agent display rule"
     );
 }
 
@@ -153,6 +153,146 @@ async fn failed_navigation_does_not_replace_committed_document() {
     assert_eq!(navigator.current().url.as_str(), "about:blank");
     assert_eq!(navigator.current().document.dump(), before_dump);
     assert_eq!(navigator.history().len(), before_history);
+}
+
+#[tokio::test]
+async fn back_forward_reload_and_branching_preserve_session_history() {
+    let server = TestServer::spawn().await;
+    let mut navigator = Navigator::default();
+    let cancellation = CancellationToken::new();
+
+    navigator
+        .navigate(server.url("/page").as_str(), &cancellation)
+        .await
+        .unwrap();
+    navigator
+        .navigate(server.url("/styled").as_str(), &cancellation)
+        .await
+        .unwrap();
+    assert_eq!(navigator.history().len(), 3);
+    assert!(navigator.can_go_back());
+    assert!(!navigator.can_go_forward());
+
+    navigator.back(&cancellation).await.unwrap().unwrap();
+    assert_eq!(navigator.current().url, server.url("/page"));
+    assert!(navigator.can_go_forward());
+
+    navigator.forward(&cancellation).await.unwrap().unwrap();
+    assert_eq!(navigator.current().url, server.url("/styled"));
+    let history_len = navigator.history().len();
+    navigator.reload(&cancellation).await.unwrap();
+    assert_eq!(navigator.history().len(), history_len);
+    assert_eq!(navigator.current().history_index, 2);
+
+    navigator.back(&cancellation).await.unwrap().unwrap();
+    navigator
+        .navigate(server.url("/style-errors").as_str(), &cancellation)
+        .await
+        .unwrap();
+    assert_eq!(navigator.history().len(), 3);
+    assert_eq!(navigator.current().history_index, 2);
+    assert_eq!(navigator.current().url, server.url("/style-errors"));
+    assert!(!navigator.can_go_forward());
+}
+
+#[tokio::test]
+async fn classic_scripts_mutate_dom_restyle_and_preserve_blocking_defer_order() {
+    let server = TestServer::spawn().await;
+    let mut navigator = Navigator::default();
+
+    navigator
+        .navigate(server.url("/scripts").as_str(), &CancellationToken::new())
+        .await
+        .expect("scripted navigation should commit");
+    let state = navigator.current();
+
+    assert_eq!(state.script_executions.len(), 5);
+    assert!(
+        state
+            .script_executions
+            .iter()
+            .all(ScriptExecution::succeeded)
+    );
+    assert_eq!(
+        state
+            .script_executions
+            .iter()
+            .map(|execution| execution.phase)
+            .collect::<Vec<_>>(),
+        vec![
+            ScriptExecutionPhase::ParserBlocking,
+            ScriptExecutionPhase::ParserBlocking,
+            ScriptExecutionPhase::ParserBlocking,
+            ScriptExecutionPhase::Deferred,
+            ScriptExecutionPhase::Deferred,
+        ]
+    );
+    assert!(!state.script_mutations.is_empty());
+
+    let target = state
+        .document
+        .query_selector(&parse_selector_list("#target").unwrap())
+        .expect("target should survive script execution");
+    assert_eq!(
+        state
+            .document
+            .element_attribute(&target, "class")
+            .as_deref(),
+        Some("hot")
+    );
+    assert_eq!(state.document.text_content(&target), "changed");
+    let title = state
+        .document
+        .query_selector(&parse_selector_list("title").unwrap())
+        .unwrap();
+    assert_eq!(
+        state.document.text_content(&title),
+        "inline-1>external-blocking>inline-2>defer-a>defer-b"
+    );
+
+    let styles = state.computed_styles();
+    assert_eq!(
+        styles
+            .style_for(target.id())
+            .unwrap()
+            .get(PropertyId::Color),
+        "red",
+        "script attribute mutation must be visible to the post-script style pass"
+    );
+    let dump = state.dump_scripts();
+    assert!(dump.contains("phase=Deferred"));
+    assert!(dump.contains("script-mutations="));
+}
+
+#[tokio::test]
+async fn script_exceptions_and_load_failures_are_non_fatal_and_ordered() {
+    let server = TestServer::spawn().await;
+    let mut navigator = Navigator::default();
+
+    navigator
+        .navigate(
+            server.url("/script-errors").as_str(),
+            &CancellationToken::new(),
+        )
+        .await
+        .expect("script failures must not abort document commit");
+    let state = navigator.current();
+
+    assert_eq!(state.script_executions.len(), 3);
+    assert_eq!(
+        state.script_executions[0].error.as_ref().unwrap().kind,
+        ScriptErrorKind::Exception
+    );
+    assert_eq!(
+        state.script_executions[1].error.as_ref().unwrap().kind,
+        ScriptErrorKind::Load
+    );
+    assert!(state.script_executions[2].succeeded());
+    let title = state
+        .document
+        .query_selector(&parse_selector_list("title").unwrap())
+        .unwrap();
+    assert_eq!(state.document.text_content(&title), "after-errors");
 }
 
 #[test]
@@ -256,6 +396,50 @@ async fn handle_connection(mut stream: TcpStream, body: Vec<u8>) {
                 <link rel="stylesheet" href="data:text/css,p%7Bcolor:red%7D">
                 <main>still committed</main>"#
                 .to_vec(),
+        ),
+        "/scripts" => (
+            "200 OK",
+            "text/html; charset=utf-8",
+            br#"<!doctype html>
+                <title>start</title>
+                <style>.hot { color: red; }</style>
+                <main id="target">old</main>
+                <script>
+                    window.order = ['inline-1'];
+                    const target = document.querySelector('#target');
+                    target.setAttribute('class', 'hot');
+                    target.textContent = 'changed';
+                </script>
+                <script src="/classic.js"></script>
+                <script defer src="/defer-a.js"></script>
+                <script>window.order.push('inline-2');</script>
+                <script defer src="/defer-b.js"></script>"#
+                .to_vec(),
+        ),
+        "/script-errors" => (
+            "200 OK",
+            "text/html; charset=utf-8",
+            br#"<!doctype html>
+                <title>before</title>
+                <script>throw new Error('boom')</script>
+                <script src="/missing.js"></script>
+                <script>document.title = 'after-errors'</script>"#
+                .to_vec(),
+        ),
+        "/classic.js" => (
+            "200 OK",
+            "text/javascript; charset=utf-8",
+            b"window.order.push('external-blocking');".to_vec(),
+        ),
+        "/defer-a.js" => (
+            "200 OK",
+            "application/javascript; charset=utf-8",
+            b"window.order.push('defer-a');".to_vec(),
+        ),
+        "/defer-b.js" => (
+            "200 OK",
+            "text/javascript; charset=utf-8",
+            b"window.order.push('defer-b'); document.title = window.order.join('>');".to_vec(),
         ),
         _ => ("404 Not Found", "text/plain; charset=utf-8", Vec::new()),
     };

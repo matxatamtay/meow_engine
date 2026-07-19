@@ -1,6 +1,6 @@
 pub const CSS_NUMBER_SCALE: i64 = 1_000_000;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CssNumber(i64);
 
 impl CssNumber {
@@ -50,6 +50,11 @@ impl CssNumber {
     }
 
     #[must_use]
+    pub const fn from_scaled(value: i64) -> Self {
+        Self(value)
+    }
+
+    #[must_use]
     pub const fn is_negative(self) -> bool {
         self.0 < 0
     }
@@ -78,7 +83,7 @@ impl CssNumber {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum LengthUnit {
     Px,
     Em,
@@ -86,7 +91,7 @@ pub enum LengthUnit {
     Percent,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Length {
     pub number: CssNumber,
     pub unit: LengthUnit,
@@ -105,7 +110,7 @@ impl Length {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum DisplayValue {
     None,
     Block,
@@ -115,13 +120,13 @@ pub enum DisplayValue {
     Grid,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BoxSizingValue {
     ContentBox,
     BorderBox,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum NamedColor {
     Black,
     Silver,
@@ -145,7 +150,7 @@ pub enum NamedColor {
     RebeccaPurple,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ColorValue {
     Transparent,
     CurrentColor,
@@ -158,19 +163,19 @@ pub enum ColorValue {
     },
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum LengthOrAuto {
     Auto,
     Length(Length),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum LengthOrNone {
     None,
     Length(Length),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BorderWidthValue {
     Thin,
     Medium,
@@ -178,7 +183,33 @@ pub enum BorderWidthValue {
     Length(Length),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum TransformOperation {
+    Translate {
+        x: Length,
+        y: Length,
+    },
+    Scale {
+        x: CssNumber,
+        y: CssNumber,
+    },
+    Rotate {
+        degrees: CssNumber,
+    },
+    Matrix {
+        a: CssNumber,
+        b: CssNumber,
+        c: CssNumber,
+        d: CssNumber,
+        e: CssNumber,
+        f: CssNumber,
+    },
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+pub struct TransformList(pub Vec<TransformOperation>);
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ComputedValue {
     Display(DisplayValue),
     Color(ColorValue),
@@ -188,6 +219,7 @@ pub enum ComputedValue {
     BorderWidth(BorderWidthValue),
     Number(CssNumber),
     BoxSizing(BoxSizingValue),
+    Transform(TransformList),
     FontSizeLength(Length),
     LineHeightLength(Length),
     LineHeightNumber(CssNumber),
@@ -206,6 +238,7 @@ impl ComputedValue {
             Self::BorderWidth(_) => "border-width",
             Self::Number(_) => "number",
             Self::BoxSizing(_) => "box-sizing",
+            Self::Transform(_) => "transform",
             Self::FontSizeLength(_) => "font-size-length",
             Self::LineHeightLength(_) => "line-height-length",
             Self::LineHeightNumber(_) => "line-height-number",
@@ -240,6 +273,7 @@ impl ComputedValue {
             Self::Number(value) | Self::LineHeightNumber(value) => value.to_css(),
             Self::BoxSizing(BoxSizingValue::ContentBox) => "content-box".to_owned(),
             Self::BoxSizing(BoxSizingValue::BorderBox) => "border-box".to_owned(),
+            Self::Transform(value) => transform_to_css(value),
             Self::Keyword(value) => value.clone(),
         }
     }
@@ -285,4 +319,33 @@ fn color_to_css(value: ColorValue) -> String {
             alpha,
         } => format!("#{red:02x}{green:02x}{blue:02x}{alpha:02x}"),
     }
+}
+
+fn transform_to_css(value: &TransformList) -> String {
+    if value.0.is_empty() {
+        return "none".to_owned();
+    }
+    value
+        .0
+        .iter()
+        .map(|operation| match operation {
+            TransformOperation::Translate { x, y } => {
+                format!("translate({}, {})", x.to_css(), y.to_css())
+            }
+            TransformOperation::Scale { x, y } => {
+                format!("scale({}, {})", x.to_css(), y.to_css())
+            }
+            TransformOperation::Rotate { degrees } => format!("rotate({}deg)", degrees.to_css()),
+            TransformOperation::Matrix { a, b, c, d, e, f } => format!(
+                "matrix({}, {}, {}, {}, {}, {})",
+                a.to_css(),
+                b.to_css(),
+                c.to_css(),
+                d.to_css(),
+                e.to_css(),
+                f.to_css()
+            ),
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }

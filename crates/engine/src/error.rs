@@ -5,6 +5,8 @@ use std::{error::Error, fmt};
 use meow_net::NetError;
 use meow_url_policy::UrlPolicyError;
 
+use super::script::ScriptError;
+
 /// Navigation failure before document commit.
 #[derive(Debug)]
 pub enum NavigationError {
@@ -12,6 +14,8 @@ pub enum NavigationError {
     Url(UrlPolicyError),
     /// Network loading failed.
     Network(NetError),
+    /// JavaScript realm initialization failed before commit.
+    Script(ScriptError),
 }
 
 impl fmt::Display for NavigationError {
@@ -19,6 +23,7 @@ impl fmt::Display for NavigationError {
         match self {
             Self::Url(error) => error.fmt(formatter),
             Self::Network(error) => error.fmt(formatter),
+            Self::Script(error) => error.fmt(formatter),
         }
     }
 }
@@ -28,6 +33,7 @@ impl Error for NavigationError {
         match self {
             Self::Url(error) => Some(error),
             Self::Network(error) => Some(error),
+            Self::Script(error) => Some(error),
         }
     }
 }

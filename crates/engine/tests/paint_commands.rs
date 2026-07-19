@@ -46,3 +46,30 @@ fn backgrounds_borders_clips_and_child_stacking_have_stable_order() {
     assert_eq!(fills[1..5], [Rgba8::rgb(0, 0, 255); 4]);
     assert_eq!(fills[5], Rgba8::rgb(0, 255, 0));
 }
+
+#[test]
+fn transforms_and_opacity_emit_isolated_stacking_contexts() {
+    let document = parse_utf8(b"<main id='layer'><section></section></main>").document;
+    let css = parse_stylesheet(
+        "html, body, main, section { display:block; margin:0 } #layer { width:20px; height:20px; background-color:red; opacity:.5; transform:translate(10px, 4px) rotate(90deg) } section { width:10px; height:10px; background-color:blue }",
+    );
+    let styles = compute_styles(
+        &document,
+        &[CascadeStylesheet::new(CascadeOrigin::Author, &css)],
+    );
+    let boxes = build_box_tree(&document, &styles);
+    let layout = layout_normal_flow(&boxes, &styles, LayoutViewport::new(80, 60));
+    let list = build_layout_display_list(&layout, &styles, Viewport::new(80, 60).unwrap()).unwrap();
+    assert_eq!(list.stacking_contexts().len(), 1);
+    let metadata = list.stacking_contexts()[0];
+    assert!(metadata.opacity > 32_000 && metadata.opacity < 33_000);
+    assert_ne!(metadata.transform, meow_display_list::Affine2D::IDENTITY);
+    assert!(matches!(
+        list.commands().get(metadata.start_command),
+        Some(DisplayCommand::PushLayer { .. })
+    ));
+    assert!(matches!(
+        list.commands().get(metadata.end_command),
+        Some(DisplayCommand::PopLayer)
+    ));
+}

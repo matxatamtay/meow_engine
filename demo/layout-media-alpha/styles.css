@@ -1,0 +1,22 @@
+html, body, header, main, section, article, nav, h1, h2, p, strong { display: block; margin: 0; }
+html { background-color: #eef4ff; color: #17223d; font-size: 18px; }
+body { padding: 18px; }
+.nav { display: flex; width: 1160px; padding: 14px; background-color: white; border-width: 2px; gap: 18px; align-items: center; }
+.brand { flex: 1 1 220px; font-size: 24px; color: #173f8f; }
+.links { display: flex; flex: 2 1 520px; justify-content: flex-end; gap: 24px; }
+a { color: #173f8f; }
+main { width: 1190px; }
+.hero { display: flex; width: 1160px; height: 250px; margin-top: 18px; padding: 16px; background-color: #dce8ff; gap: 20px; align-items: center; }
+.hero-copy { display: block; flex: 3 1 600px; }
+.hero-copy h1 { font-size: 38px; color: #173f8f; }
+.hero-copy p { margin-top: 18px; width: 620px; }
+.hero-art { flex: 1 1 280px; width: 280px; height: 220px; transform: rotate(2deg); }
+.cards { display: flex; width: 1190px; margin-top: 18px; gap: 18px; }
+.card { display: block; flex: 1 1 360px; padding: 14px; background-color: white; border-width: 2px; }
+.card img { width: 100%; height: 120px; }
+.card h2 { margin-top: 12px; color: #173f8f; }
+.card p { margin-top: 10px; }
+.faded { opacity: .72; }
+.tilted { transform: translate(5px, 4px) rotate(-2deg); }
+.metric-strip { display: flex; width: 1160px; margin-top: 24px; padding: 16px; background-color: #fff0c2; gap: 16px; justify-content: space-between; }
+.metric-strip strong { flex: 1 1 220px; }

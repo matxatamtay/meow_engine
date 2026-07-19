@@ -13,7 +13,7 @@ fn declaration(name: &str, value: &str) -> Declaration {
 
 #[test]
 fn registry_has_stable_names_initials_and_inheritance() {
-    assert_eq!(ALL_PROPERTIES.len(), 31);
+    assert_eq!(ALL_PROPERTIES.len(), 39);
     assert_eq!(W11_SNAPSHOT_PROPERTIES.len(), 13);
     assert_eq!(W12_SNAPSHOT_PROPERTIES.len(), 26);
     assert_eq!(PropertyId::Color.name(), "color");
@@ -80,4 +80,56 @@ fn text_decoration_line_parses_and_canonicalizes_subset() {
         "none"
     );
     assert!(parse_computed_value(PropertyId::TextDecorationLine, "overline").is_none());
+}
+
+#[test]
+fn parses_flex_shorthand_and_phase_one_longhands() {
+    let declarations = crate::parse_stylesheet(
+        ".card { flex: 2 1 180px; flex-direction: row-reverse; justify-content: space-between; align-items: center; gap: 12px; }",
+    );
+    let crate::Rule::Style(rule) = &declarations.rules[0] else {
+        panic!("style rule expected");
+    };
+    let parsed = rule
+        .declarations
+        .iter()
+        .flat_map(super::parse_property_declarations)
+        .collect::<Vec<_>>();
+    assert_eq!(parsed.len(), 7);
+    assert_eq!(parsed[0].property, super::PropertyId::FlexGrow);
+    assert_eq!(parsed[1].property, super::PropertyId::FlexShrink);
+    assert_eq!(parsed[2].property, super::PropertyId::FlexBasis);
+    assert_eq!(
+        parsed[2].value,
+        super::SpecifiedValue::Value("180px".to_owned())
+    );
+    assert_eq!(
+        super::parse_computed_value(super::PropertyId::FlexDirection, "row-reverse")
+            .unwrap()
+            .to_css(),
+        "row-reverse"
+    );
+    assert_eq!(
+        super::parse_computed_value(super::PropertyId::Gap, "12px")
+            .unwrap()
+            .to_css(),
+        "12px"
+    );
+}
+
+#[test]
+fn parses_deterministic_2d_transform_subset() {
+    let value = super::parse_computed_value(
+        super::PropertyId::Transform,
+        "translate(10px, 25%) rotate(0.25turn) scale(2, .5)",
+    )
+    .expect("transform should parse");
+    assert_eq!(
+        value.to_css(),
+        "translate(10px, 25%) rotate(90deg) scale(2, .5)"
+    );
+    assert!(
+        super::parse_computed_value(super::PropertyId::Transform, "translate(10px, nope)")
+            .is_none()
+    );
 }

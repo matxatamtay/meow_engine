@@ -30,6 +30,10 @@ pub enum NetError {
     InvalidRedirectLocation,
     /// Redirect URL reference was invalid.
     Url(UrlPolicyError),
+    /// A broker transport or remote network process failed.
+    Broker(String),
+    /// Network permission policy denied the request.
+    PermissionDenied(String),
 }
 
 impl fmt::Display for NetError {
@@ -54,6 +58,8 @@ impl fmt::Display for NetError {
                 formatter.write_str("redirect Location header was not valid text")
             }
             Self::Url(error) => error.fmt(formatter),
+            Self::Broker(error) => write!(formatter, "network broker failed: {error}"),
+            Self::PermissionDenied(error) => write!(formatter, "network request denied: {error}"),
         }
     }
 }
