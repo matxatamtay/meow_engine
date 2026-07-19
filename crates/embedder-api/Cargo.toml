@@ -9,12 +9,17 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = ["js-boa"]
+js-boa = ["meow-engine/js-boa"]
+js-v8 = ["meow-engine/js-v8"]
+
 [dependencies]
 serde_json.workspace = true
 meow-inspector = { path = "../inspector" }
 meow-accessibility = { path = "../accessibility" }
 meow-display-list = { path = "../display-list" }
-meow-engine = { path = "../engine" }
+meow-engine = { path = "../engine", default-features = false }
 tracing.workspace = true
 
 [dev-dependencies]

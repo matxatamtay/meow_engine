@@ -12,7 +12,14 @@ mod model;
 mod navigator;
 mod paint;
 mod profile;
+#[cfg(feature = "js-boa")]
 mod script;
+#[cfg(all(not(feature = "js-boa"), feature = "js-v8"))]
+#[path = "script_v8.rs"]
+mod script;
+
+#[cfg(not(any(feature = "js-boa", feature = "js-v8")))]
+compile_error!("meow-engine requires at least one JavaScript backend feature");
 mod storage;
 mod style;
 mod text;
@@ -56,8 +63,12 @@ pub use model::{
 };
 pub use navigator::Navigator;
 pub use paint::build_layout_display_list;
+#[cfg(feature = "js-boa")]
+pub use script::BoaRuntime;
+#[cfg(all(not(feature = "js-boa"), feature = "js-v8"))]
+pub use script::V8Runtime;
 pub use script::{
-    BoaRuntime, ConsoleLevel, ConsoleMessage, EventDispatchResult, FetchCompletion,
+    ConsoleLevel, ConsoleMessage, DocumentRuntime, EventDispatchResult, FetchCompletion,
     FetchResponseInit, FetchTask, JsRuntime, ScriptError, ScriptErrorKind, ScriptExecution,
     ScriptExecutionPhase, ScriptLimits, ScriptSource, ScriptValue, TimerRunReport,
     WebSocketCommand, WebSocketEvent,

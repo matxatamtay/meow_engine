@@ -9,11 +9,16 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = ["js-boa"]
+js-boa = ["meow-embedder-api/js-boa"]
+js-v8 = ["meow-embedder-api/js-v8"]
+
 [dependencies]
 bytes.workspace = true
 http.workspace = true
 meow-display-list = { path = "../display-list" }
-meow-embedder-api = { path = "../embedder-api" }
+meow-embedder-api = { path = "../embedder-api", default-features = false }
 meow-ipc = { path = "../ipc" }
 meow-inspector = { path = "../inspector" }
 meow-net = { path = "../net" }

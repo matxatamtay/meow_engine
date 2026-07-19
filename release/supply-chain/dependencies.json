@@ -1,5 +1,5 @@
 {
-  "cargo_lock_sha256": "7c21cf6a9821bf05b2ba759375712486a5c75557c0fd1a6d36d8d94805ed6a4e",
+  "cargo_lock_sha256": "fad6e9acb4c53202f1180cbddf238748174179b557d3edc2c3c791be75e07834",
   "edges": [
     {
       "from": "registry+https://github.com/rust-lang/crates.io-index#ab_glyph@0.2.32",
@@ -10338,6 +10338,22 @@
       "kinds": [
         "normal:*"
       ],
+      "name": "meow_js_runtime",
+      "to": "workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0"
+    },
+    {
+      "from": "workspace:crates/engine#meow-engine@0.2.0-alpha.0",
+      "kinds": [
+        "normal:*"
+      ],
+      "name": "meow_js_v8",
+      "to": "workspace:crates/js-v8#meow-js-v8@0.2.0-alpha.0"
+    },
+    {
+      "from": "workspace:crates/engine#meow-engine@0.2.0-alpha.0",
+      "kinds": [
+        "normal:*"
+      ],
       "name": "meow_net",
       "to": "workspace:crates/net#meow-net@0.2.0-alpha.0"
     },
@@ -10412,6 +10428,38 @@
       ],
       "name": "serde_json",
       "to": "registry+https://github.com/rust-lang/crates.io-index#serde_json@1.0.150"
+    },
+    {
+      "from": "workspace:crates/js-boa#meow-js-boa@0.2.0-alpha.0",
+      "kinds": [
+        "normal:*"
+      ],
+      "name": "boa_engine",
+      "to": "registry+https://github.com/rust-lang/crates.io-index#boa_engine@0.21.1"
+    },
+    {
+      "from": "workspace:crates/js-boa#meow-js-boa@0.2.0-alpha.0",
+      "kinds": [
+        "normal:*"
+      ],
+      "name": "meow_js_runtime",
+      "to": "workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0"
+    },
+    {
+      "from": "workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0",
+      "kinds": [
+        "normal:*"
+      ],
+      "name": "serde",
+      "to": "registry+https://github.com/rust-lang/crates.io-index#serde@1.0.228"
+    },
+    {
+      "from": "workspace:crates/js-v8#meow-js-v8@0.2.0-alpha.0",
+      "kinds": [
+        "normal:*"
+      ],
+      "name": "meow_js_runtime",
+      "to": "workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0"
     },
     {
       "from": "workspace:crates/net#meow-net@0.2.0-alpha.0",
@@ -10686,7 +10734,7 @@
       "to": "registry+https://github.com/rust-lang/crates.io-index#url@2.5.8"
     }
   ],
-  "package_count": 494,
+  "package_count": 497,
   "packages": [
     {
       "checksum_sha256": "01c0457472c38ea5bd1c3b5ada5e368271cb550be7a4ca4a0b4634e9913f6cc2",
@@ -13035,6 +13083,42 @@
       "license": "MPL-2.0",
       "manifest_path": "crates/ipc/Cargo.toml",
       "name": "meow-ipc",
+      "repository": null,
+      "source": null,
+      "version": "0.2.0-alpha.0",
+      "workspace_member": true
+    },
+    {
+      "checksum_sha256": null,
+      "id": "workspace:crates/js-boa#meow-js-boa@0.2.0-alpha.0",
+      "kind": "workspace",
+      "license": "MPL-2.0",
+      "manifest_path": "crates/js-boa/Cargo.toml",
+      "name": "meow-js-boa",
+      "repository": null,
+      "source": null,
+      "version": "0.2.0-alpha.0",
+      "workspace_member": true
+    },
+    {
+      "checksum_sha256": null,
+      "id": "workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0",
+      "kind": "workspace",
+      "license": "MPL-2.0",
+      "manifest_path": "crates/js-runtime/Cargo.toml",
+      "name": "meow-js-runtime",
+      "repository": null,
+      "source": null,
+      "version": "0.2.0-alpha.0",
+      "workspace_member": true
+    },
+    {
+      "checksum_sha256": null,
+      "id": "workspace:crates/js-v8#meow-js-v8@0.2.0-alpha.0",
+      "kind": "workspace",
+      "license": "MPL-2.0",
+      "manifest_path": "crates/js-v8/Cargo.toml",
+      "name": "meow-js-v8",
       "repository": null,
       "source": null,
       "version": "0.2.0-alpha.0",
@@ -16620,7 +16704,7 @@
   "schema_version": 1,
   "source_counts": {
     "registry": 475,
-    "workspace": 19
+    "workspace": 22
   },
   "workspace_members": [
     "meow-accessibility",
@@ -16635,6 +16719,9 @@
     "meow-html",
     "meow-inspector",
     "meow-ipc",
+    "meow-js-boa",
+    "meow-js-runtime",
+    "meow-js-v8",
     "meow-net",
     "meow-process-model",
     "meow-renderer",

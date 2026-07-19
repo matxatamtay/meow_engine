@@ -1845,6 +1845,8 @@ dependencies = [
  "meow-css",
  "meow-display-list",
  "meow-html",
+ "meow-js-runtime",
+ "meow-js-v8",
  "meow-net",
  "meow-renderer",
  "meow-url-policy",
@@ -1903,6 +1905,28 @@ version = "0.2.0-alpha.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "meow-js-boa"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "boa_engine",
+ "meow-js-runtime",
+]
+
+[[package]]
+name = "meow-js-runtime"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "meow-js-v8"
+version = "0.2.0-alpha.0"
+dependencies = [
+ "meow-js-runtime",
 ]
 
 [[package]]

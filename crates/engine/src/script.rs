@@ -22,7 +22,7 @@ use crate::{
     storage::{StorageArea, StorageBindings, StorageManager},
 };
 
-const BINDINGS_BOOTSTRAP: &str = include_str!("script_bootstrap.js");
+const BINDINGS_BOOTSTRAP: &str = include_str!("../../js-runtime/src/browser_bootstrap.js");
 
 thread_local! {
     static ACTIVE_HOST: RefCell<Option<Rc<RefCell<HostState>>>> = const { RefCell::new(None) };
@@ -272,6 +272,8 @@ pub struct BoaRuntime {
     host: Rc<RefCell<HostState>>,
     limits: ScriptLimits,
 }
+
+pub type DocumentRuntime = BoaRuntime;
 
 impl fmt::Debug for BoaRuntime {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

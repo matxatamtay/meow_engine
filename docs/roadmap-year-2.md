@@ -3,8 +3,8 @@
 ## Foundation sequence
 
 - **Y2-W2:** cargo-deny, deterministic SBOM/license reports, and an immutable V8 binding/source/archive provenance policy.
-- **Y2-W3:** backend-neutral `JsRuntime` boundary with V8 default and Boa fallback/reference.
-- **Y2-W4:** V8 isolate spike inside the content child with reproducible-enough Linux packaging and crash containment.
+- **Y2-W3 (02/08/2027 - 08/08/2027):** backend-neutral `JsRuntime` boundary, V8 production default, explicit Boa fallback/reference, dual-backend conformance, and ADR 0004.
+- **Y2-W4 (09/08/2027 - 15/08/2027):** V8 isolate spike inside the content child with reproducible-enough Linux packaging and crash containment.
 
 The public release/tag operation is intentionally external to this sequence.
 

@@ -9,9 +9,16 @@ publish.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = ["js-boa"]
+js-boa = ["dep:boa_engine"]
+js-v8 = ["dep:meow-js-runtime", "dep:meow-js-v8"]
+
 [dependencies]
 meow-accessibility = { path = "../accessibility" }
-boa_engine.workspace = true
+boa_engine = { workspace = true, optional = true }
+meow-js-runtime = { path = "../js-runtime", optional = true }
+meow-js-v8 = { path = "../js-v8", optional = true }
 resvg.workspace = true
 image.workspace = true
 base64.workspace = true

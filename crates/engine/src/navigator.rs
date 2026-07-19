@@ -12,7 +12,7 @@ use meow_net::{CancellationToken, Loader, NetError, Request};
 use meow_url_policy::BrowserUrl;
 
 use super::{
-    BoaRuntime, ConsoleMessage, EventDispatchResult, FormControlState, ImageCache, JsRuntime,
+    ConsoleMessage, DocumentRuntime, EventDispatchResult, FormControlState, ImageCache, JsRuntime,
     ScriptError, ScriptErrorKind, ScriptExecution, ScriptExecutionPhase, ScriptLimits,
     ScriptSource, StorageManager, TimerRunReport, WebPlatform, WebTaskReport,
     encoding::{charset_parameter, sniff_encoding},
@@ -29,7 +29,7 @@ use super::{
 pub struct Navigator {
     loader: Loader,
     current: DocumentState,
-    runtime: BoaRuntime,
+    runtime: DocumentRuntime,
     storage: StorageManager,
     image_cache: ImageCache,
     history: Vec<HistoryEntry>,
@@ -48,7 +48,7 @@ impl Navigator {
         let url = BrowserUrl::about_blank();
         let current = blank_document(url.clone(), 0);
         let bindings = storage.bindings_for(&url.origin());
-        let runtime = BoaRuntime::new_with_storage(
+        let runtime = DocumentRuntime::new_with_storage(
             current.document.clone(),
             url.clone(),
             ScriptLimits::default(),
@@ -335,7 +335,7 @@ impl Navigator {
         if target.as_str() == "about:blank" {
             let state = blank_document(target.clone(), history_index);
             let bindings = self.storage.bindings_for(&target.origin());
-            let runtime = BoaRuntime::new_with_storage(
+            let runtime = DocumentRuntime::new_with_storage(
                 state.document.clone(),
                 target,
                 ScriptLimits::default(),
@@ -407,7 +407,7 @@ impl Navigator {
 
 struct PendingDocument {
     state: DocumentState,
-    runtime: BoaRuntime,
+    runtime: DocumentRuntime,
 }
 
 impl Default for Navigator {
@@ -452,14 +452,14 @@ async fn execute_document_scripts(
     cancellation: &CancellationToken,
 ) -> Result<
     (
-        BoaRuntime,
+        DocumentRuntime,
         Vec<ScriptExecution>,
         Vec<meow_html::DomMutation>,
     ),
     NavigationError,
 > {
     let candidates = document.script_candidates();
-    let mut runtime = BoaRuntime::new_with_storage(
+    let mut runtime = DocumentRuntime::new_with_storage(
         document.clone(),
         document_url.clone(),
         ScriptLimits::default(),
@@ -575,7 +575,7 @@ async fn prepare_script_task(
 }
 
 fn drain_script_tasks(
-    runtime: &mut BoaRuntime,
+    runtime: &mut DocumentRuntime,
     queue: &mut VecDeque<PendingScriptTask>,
     executions: &mut Vec<ScriptExecution>,
     mutations: &mut Vec<meow_html::DomMutation>,

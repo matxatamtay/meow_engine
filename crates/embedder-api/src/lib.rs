@@ -8,7 +8,7 @@ pub use meow_display_list::{
     StackingContextMetadata, Viewport,
 };
 pub use meow_engine::{
-    BoaRuntime, BrowserUrl, CancellationToken, CharsetSource, ConsoleLevel, ConsoleMessage,
+    BrowserUrl, CancellationToken, CharsetSource, ConsoleLevel, ConsoleMessage, DocumentRuntime,
     DocumentState, DocumentStylesheet, DocumentViewMetrics, DomMutation, DomMutationKind,
     FormControlState, GlyphCacheMetrics, HistoryEntry, HitTestEntry, HitTestKind, HitTestList,
     ImageCacheMetrics, ImageKind, ImageLoadError, ImageResource, InteractionPoint,

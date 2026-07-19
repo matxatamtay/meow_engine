@@ -9,7 +9,7 @@
     "licenseListVersion": "3.26"
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://meowengine.invalid/spdx/cargo-lock/7c21cf6a9821bf05b2ba759375712486a5c75557c0fd1a6d36d8d94805ed6a4e",
+  "documentNamespace": "https://meowengine.invalid/spdx/cargo-lock/fad6e9acb4c53202f1180cbddf238748174179b557d3edc2c3c791be75e07834",
   "name": "MeowEngine Cargo dependency SBOM",
   "packages": [
     {
@@ -5092,6 +5092,66 @@
       "name": "meow-ipc",
       "primaryPackagePurpose": "LIBRARY",
       "sourceInfo": "Cargo package id: workspace:crates/ipc#meow-ipc@0.2.0-alpha.0; manifest: crates/ipc/Cargo.toml",
+      "supplier": "NOASSERTION",
+      "versionInfo": "0.2.0-alpha.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-eb300453e6a5b0633ee0",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/meow-js-boa@0.2.0-alpha.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MPL-2.0",
+      "licenseDeclared": "MPL-2.0",
+      "name": "meow-js-boa",
+      "primaryPackagePurpose": "LIBRARY",
+      "sourceInfo": "Cargo package id: workspace:crates/js-boa#meow-js-boa@0.2.0-alpha.0; manifest: crates/js-boa/Cargo.toml",
+      "supplier": "NOASSERTION",
+      "versionInfo": "0.2.0-alpha.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-4e52ffae23435aca0afb",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/meow-js-runtime@0.2.0-alpha.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MPL-2.0",
+      "licenseDeclared": "MPL-2.0",
+      "name": "meow-js-runtime",
+      "primaryPackagePurpose": "LIBRARY",
+      "sourceInfo": "Cargo package id: workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0; manifest: crates/js-runtime/Cargo.toml",
+      "supplier": "NOASSERTION",
+      "versionInfo": "0.2.0-alpha.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-18ea341651e496ca58c7",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/meow-js-v8@0.2.0-alpha.0",
+          "referenceType": "purl"
+        }
+      ],
+      "filesAnalyzed": false,
+      "licenseConcluded": "MPL-2.0",
+      "licenseDeclared": "MPL-2.0",
+      "name": "meow-js-v8",
+      "primaryPackagePurpose": "LIBRARY",
+      "sourceInfo": "Cargo package id: workspace:crates/js-v8#meow-js-v8@0.2.0-alpha.0; manifest: crates/js-v8/Cargo.toml",
       "supplier": "NOASSERTION",
       "versionInfo": "0.2.0-alpha.0"
     },
@@ -12900,12 +12960,22 @@
       "spdxElementId": "SPDXRef-DOCUMENT"
     },
     {
+      "relatedSpdxElement": "SPDXRef-Package-18ea341651e496ca58c7",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
       "relatedSpdxElement": "SPDXRef-Package-1d29a5bd19b9d259c1b5",
       "relationshipType": "DESCRIBES",
       "spdxElementId": "SPDXRef-DOCUMENT"
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-1f8be9a63f8f835b2c2e",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-4e52ffae23435aca0afb",
       "relationshipType": "DESCRIBES",
       "spdxElementId": "SPDXRef-DOCUMENT"
     },
@@ -12976,6 +13046,11 @@
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-ea4f8102dba6eccfbbb5",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-eb300453e6a5b0633ee0",
       "relationshipType": "DESCRIBES",
       "spdxElementId": "SPDXRef-DOCUMENT"
     },
@@ -13798,6 +13873,11 @@
       "relatedSpdxElement": "SPDXRef-Package-ba4b7b5683912d7f821f",
       "relationshipType": "DEPENDS_ON",
       "spdxElementId": "SPDXRef-Package-17e3a7b94001920f2392"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-4e52ffae23435aca0afb",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-18ea341651e496ca58c7"
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-b90b6f83be94685f7b23",
@@ -14943,6 +15023,11 @@
       "relatedSpdxElement": "SPDXRef-Package-4541788b4195494465c5",
       "relationshipType": "DEPENDS_ON",
       "spdxElementId": "SPDXRef-Package-4dc5004048b6bb9aa2ea"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-0d6fd23bacabf80703c2",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-4e52ffae23435aca0afb"
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-3f52ea761ab620645c0c",
@@ -16600,6 +16685,11 @@
       "spdxElementId": "SPDXRef-Package-8d4e2de18c7805f93fb4"
     },
     {
+      "relatedSpdxElement": "SPDXRef-Package-18ea341651e496ca58c7",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-8d4e2de18c7805f93fb4"
+    },
+    {
       "relatedSpdxElement": "SPDXRef-Package-1e29c71d00808b1ac21d",
       "relationshipType": "DEPENDS_ON",
       "spdxElementId": "SPDXRef-Package-8d4e2de18c7805f93fb4"
@@ -16611,6 +16701,11 @@
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-26575a7cc43168ba6788",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-8d4e2de18c7805f93fb4"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-4e52ffae23435aca0afb",
       "relationshipType": "DEPENDS_ON",
       "spdxElementId": "SPDXRef-Package-8d4e2de18c7805f93fb4"
     },
@@ -19003,6 +19098,16 @@
       "relatedSpdxElement": "SPDXRef-Package-cf64dc6f1a3082f988a2",
       "relationshipType": "DEPENDS_ON",
       "spdxElementId": "SPDXRef-Package-eaa0434ff099bff03b41"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-4e52ffae23435aca0afb",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-eb300453e6a5b0633ee0"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-Package-6318269accfab14986e3",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-Package-eb300453e6a5b0633ee0"
     },
     {
       "relatedSpdxElement": "SPDXRef-Package-4f1c9ebbb1def1e1f4a5",

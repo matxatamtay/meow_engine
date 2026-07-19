@@ -15,7 +15,7 @@
     "Unlicense",
     "Zlib"
   ],
-  "cargo_lock_sha256": "7c21cf6a9821bf05b2ba759375712486a5c75557c0fd1a6d36d8d94805ed6a4e",
+  "cargo_lock_sha256": "fad6e9acb4c53202f1180cbddf238748174179b557d3edc2c3c791be75e07834",
   "license_counts": {
     "(Apache-2.0 OR MIT) AND BSD-3-Clause": 1,
     "(MIT OR Apache-2.0) AND Unicode-3.0": 1,
@@ -41,13 +41,13 @@
     "MIT OR Apache-2.0 OR LGPL-2.1-or-later": 2,
     "MIT OR Apache-2.0 OR Zlib": 8,
     "MIT OR Zlib OR Apache-2.0": 1,
-    "MPL-2.0": 22,
+    "MPL-2.0": 25,
     "Unicode-3.0": 18,
     "Unlicense OR MIT": 16,
     "Zlib": 3,
     "Zlib OR Apache-2.0 OR MIT": 9
   },
-  "package_count": 494,
+  "package_count": 497,
   "packages": [
     {
       "checksum_sha256": "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3",
@@ -5336,6 +5336,42 @@
       "license": "MPL-2.0",
       "manifest_path": "crates/ipc/Cargo.toml",
       "name": "meow-ipc",
+      "repository": null,
+      "source": null,
+      "version": "0.2.0-alpha.0",
+      "workspace_member": true
+    },
+    {
+      "checksum_sha256": null,
+      "id": "workspace:crates/js-boa#meow-js-boa@0.2.0-alpha.0",
+      "kind": "workspace",
+      "license": "MPL-2.0",
+      "manifest_path": "crates/js-boa/Cargo.toml",
+      "name": "meow-js-boa",
+      "repository": null,
+      "source": null,
+      "version": "0.2.0-alpha.0",
+      "workspace_member": true
+    },
+    {
+      "checksum_sha256": null,
+      "id": "workspace:crates/js-runtime#meow-js-runtime@0.2.0-alpha.0",
+      "kind": "workspace",
+      "license": "MPL-2.0",
+      "manifest_path": "crates/js-runtime/Cargo.toml",
+      "name": "meow-js-runtime",
+      "repository": null,
+      "source": null,
+      "version": "0.2.0-alpha.0",
+      "workspace_member": true
+    },
+    {
+      "checksum_sha256": null,
+      "id": "workspace:crates/js-v8#meow-js-v8@0.2.0-alpha.0",
+      "kind": "workspace",
+      "license": "MPL-2.0",
+      "manifest_path": "crates/js-v8/Cargo.toml",
+      "name": "meow-js-v8",
       "repository": null,
       "source": null,
       "version": "0.2.0-alpha.0",

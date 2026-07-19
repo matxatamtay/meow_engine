@@ -26,7 +26,7 @@ use tokio_tungstenite::{
 };
 
 use crate::{
-    BoaRuntime, FetchCompletion, FetchResponseInit, FetchTask, ScriptError, WebSocketCommand,
+    DocumentRuntime, FetchCompletion, FetchResponseInit, FetchTask, ScriptError, WebSocketCommand,
     WebSocketEvent,
 };
 
@@ -61,7 +61,7 @@ impl WebPlatform {
         }
     }
 
-    pub async fn pump(&mut self, runtime: &mut BoaRuntime) -> WebTaskReport {
+    pub async fn pump(&mut self, runtime: &mut DocumentRuntime) -> WebTaskReport {
         let mut report = WebTaskReport::default();
         self.drain_websocket_events(runtime, &mut report);
         self.process_websocket_commands(runtime.take_websocket_commands());
@@ -370,7 +370,11 @@ impl WebPlatform {
         });
     }
 
-    fn drain_websocket_events(&mut self, runtime: &mut BoaRuntime, report: &mut WebTaskReport) {
+    fn drain_websocket_events(
+        &mut self,
+        runtime: &mut DocumentRuntime,
+        report: &mut WebTaskReport,
+    ) {
         while let Ok((id, event)) = self.websocket_event_receiver.try_recv() {
             if matches!(event, WebSocketEvent::Close { .. }) {
                 self.sockets.remove(&id);

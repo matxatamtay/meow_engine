@@ -13,10 +13,13 @@ A Linux-first browser engine and browser shell written in Rust. The current mile
 - `crates/css`: CSS Syntax adapter, selectors, typed values, property semantics, declarations, recovery, and stable rule dumps
 - `crates/display-list`: backend-neutral paint commands
 - `crates/embedder-api`: browser-shell/engine boundary
-- `crates/engine`: frame/navigation orchestration, cascade/layout/interaction, and the Boa-backed JavaScript runtime and scheduler
+- `crates/engine`: frame/navigation orchestration, cascade/layout/interaction, and backend-neutral document scheduling
 - `crates/html`: html5ever TreeSink, generational DOM arena, explicit mutation records, traversal, streaming decode, and selector matching/query
 - `crates/ipc`: versioned envelopes, bounded framing, request IDs, and transport abstraction
 - `crates/inspector`: serializable DOM/style/box/network/console snapshots
+- `crates/js-runtime`: JavaScript backend contract, host API, selection policy, and shared conformance suite
+- `crates/js-boa`: explicit Boa reference/fallback adapter
+- `crates/js-v8`: production-default V8 adapter scaffold, completed by Y2-W4
 - `crates/net`: direct or brokered HTTP(S) loader with network-owned cookies and cache
 - `crates/process-model`: content/network child protocols, supervision, frame submission, and crash recovery
 - `crates/renderer`: tiny-skia CPU and Vello/wgpu GPU backends
@@ -34,15 +37,15 @@ bash scripts/verify.sh
 ```
 
 The doctor checks bootstrap health. The verification script is the canonical
-format, Clippy, test, supply-chain drift, and doctor gate used by CI.
+format, Clippy, dual-JavaScript-backend, test, supply-chain drift, and doctor gate used by CI.
 
 ## Supply chain and V8 provenance
 
 Rust dependencies are checked by the pinned cargo-deny policy. Deterministic
 SPDX SBOM, license, dependency, and V8 provenance reports live in
-`release/supply-chain/`. V8 is not integrated as a runtime backend yet; its
-binding commit, engine-source commit, static archives, license evidence,
-checksums, and immutable cache keys are pinned ahead of Y2-W3/Y2-W4.
+`release/supply-chain/`. The Y2-W3 runtime boundary selects V8 for the
+production browser graph and retains Boa only as an explicit reference/fallback.
+The actual V8 isolate remains fail-closed until the Y2-W4 content-process spike.
 
 ```bash
 cargo install --locked cargo-deny --version 0.19.7
@@ -52,11 +55,24 @@ cargo xtask supply-chain check
 cargo xtask v8-verify --target x86_64-unknown-linux-gnu
 ```
 
-The last command is the explicit networked tag, submodule, archive, and license check. Normal validation and CI report
-comparison remain network-free. Two current quick-xml advisories are narrowly
+The last command is the explicit networked tag, submodule, archive, and license
+check. Normal validation and CI report comparison remain network-free. Two current quick-xml advisories are narrowly
 reviewed exceptions because the affected parser is used only by the
 wayland-scanner proc macro over dependency-owned protocol XML; stale exceptions
 are denied automatically.
+
+## JavaScript backend policy
+
+```bash
+python3 scripts/verify_js_backends.py
+cargo tree -p meow-browser --edges normal --prefix none
+```
+
+`meow-browser` defaults to the `js-v8` feature and its isolated production graph
+must not contain `boa_engine` or `meow-js-boa`. `meow-engine`, headless tools, and
+compatibility suites may explicitly select `js-boa` as the reference path. W3
+never falls back silently: a non-empty page script reports
+`BackendUnavailable` until the W4 isolate lands.
 
 Run an instrumented development browser process with live logs and a persistent
 session log:
@@ -286,6 +302,8 @@ cargo run --locked -p meow-headless -- --dump-css https://example.com/
 - [W51 release candidate](docs/w51-release-candidate.md)
 - [W52 public alpha](docs/w52-public-alpha.md)
 - [Y2-W2 supply chain and V8 provenance](docs/y2-w2-supply-chain-and-v8-provenance.md)
+- [Y2-W3 JavaScript runtime boundary](docs/y2-w3-js-runtime-boundary.md)
+- [ADR 0004: JavaScript runtime boundary](docs/adr/0004-javascript-runtime-boundary.md)
 - [Privacy defaults](docs/privacy.md)
 - [Threat model](docs/threat-model.md)
 - [Known issues](docs/known-issues.md)

@@ -1,21 +1,21 @@
 {
-  "cargo_lock_sha256": "7c21cf6a9821bf05b2ba759375712486a5c75557c0fd1a6d36d8d94805ed6a4e",
+  "cargo_lock_sha256": "fad6e9acb4c53202f1180cbddf238748174179b557d3edc2c3c791be75e07834",
   "deny_config_sha256": "f8d1b356b6917038e871849dcab1f94e0c8cb5bc2e3e8e15c98258d75c411506",
   "reports": [
     {
-      "bytes": 633328,
+      "bytes": 635851,
       "path": "dependencies.json",
-      "sha256": "55c7bffe0ad576f794b5a0893aca49d3bf3661cd66873128067f322a4fa5d9c0"
+      "sha256": "2f1dff3607b52b082da868a28dbfe1d3e888dec057e9799f8477f968c20d9cf4"
     },
     {
-      "bytes": 269923,
+      "bytes": 271006,
       "path": "licenses.json",
-      "sha256": "d87a32b0b042c2dfc1fb7bcb2c1559f483a5371ee2bbe126f414c7e391cb5aa2"
+      "sha256": "7610b703867df9506a60fdaa46c4c50b980866472a348fc18d54f6fc82790d0c"
     },
     {
-      "bytes": 741484,
+      "bytes": 745258,
       "path": "sbom.spdx.json",
-      "sha256": "59f3b4c7523f2eb2a030de79054999ad37a49ef387b5aeb5cd00094904b00f8d"
+      "sha256": "b4ff3898fa13623f38724fbcac45933f77713d47559f6571cef5a2a7fedecea3"
     },
     {
       "bytes": 3018,

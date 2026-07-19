@@ -1,5 +1,8 @@
 # W25 Boa adapter
 
+> Historical note: ADR 0004 supersedes the original ownership boundary in Y2-W3.
+> Boa remains the reference adapter, while the production browser selects V8.
+
 MeowEngine's first JavaScript backend is Boa 0.21.1. The engine-facing boundary is the `JsRuntime` trait, with `BoaRuntime` as the initial implementation.
 
 ## Runtime model

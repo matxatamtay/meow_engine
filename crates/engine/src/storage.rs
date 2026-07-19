@@ -1,4 +1,5 @@
 //! Origin-partitioned Web Storage with bounded local persistence.
+#![cfg_attr(all(feature = "js-v8", not(feature = "js-boa")), allow(dead_code))]
 
 use std::{
     cell::RefCell,
